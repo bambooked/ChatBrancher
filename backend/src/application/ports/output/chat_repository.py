@@ -1,8 +1,11 @@
 from typing import Protocol
 
+from domain.entities.message_entity import MessageEntity
+
 class ChatRepositoryProtcol(Protocol):
-    def save_message():
+    async def save_message(self, message_entity: MessageEntity) -> None:
         pass
 
-    def load_chat_history():
-        pass
+    # async def load_chat_history(self, uuid_history: list[MessageEntity]) -> list[dict]:
+    #     print("this is protocol, not implement")
+    #     return []

@@ -11,7 +11,7 @@ class MessageHandler:
     LLMは外部サービスとして扱い、応答生成のみ委譲する。
     """
     
-    def __init__(self, repo: ChatRepositoryProtcol, llm_client: LLMCAdapterProtcol):
+    def __init__(self, repo: ChatRepositoryProtcol, llm_client: LLMCAdapterProtcol) -> None:
         self.repo = repo
         self.llm_client = llm_client
 
@@ -30,7 +30,7 @@ class MessageHandler:
         self, 
         chat_tree: ChatTreeEntity, 
         content: str, 
-        parent_uuid: str
+        parent_message: MessageEntity
     ) -> MessageEntity:
         """
         ユーザーメッセージを作成・保存・ツリーに追加
@@ -45,14 +45,14 @@ class MessageHandler:
         """
         message = MessageEntity.create_user_message(content)
         await self.repo.save_message(message)
-        chat_tree.add_message(parent_uuid, message.uuid)
+        chat_tree.add_message(parent_message, message)
         return message
     
     async def add_assistant_message(
         self, 
         chat_tree: ChatTreeEntity, 
         content: str, 
-        parent_uuid: str
+        parent_message: MessageEntity
     ) -> MessageEntity:
         """
         アシスタントメッセージを作成・保存・ツリーに追加
@@ -67,14 +67,14 @@ class MessageHandler:
         """
         message = MessageEntity.create_assistant_message(content)
         await self.repo.save_message(message)
-        chat_tree.add_message(parent_uuid, message.uuid)
+        chat_tree.add_message(parent_message, message)
         return message
     
     async def add_system_message(
         self, 
         chat_tree: ChatTreeEntity, 
         content: str, 
-        parent_uuid: str
+        parent_message: MessageEntity
     ) -> MessageEntity:
         """
         システムメッセージを作成・保存・ツリーに追加
@@ -89,13 +89,14 @@ class MessageHandler:
         """
         message = MessageEntity.create_system_message(content)
         await self.repo.save_message(message)
-        chat_tree.add_message(parent_uuid, message.uuid)
+        chat_tree.add_message(parent_message, message)
         return message
     
     async def generate_llm_response(
         self, 
         chat_tree: ChatTreeEntity, 
-        user_message_uuid: str
+        user_message: MessageEntity,
+        llm_model: str
     ) -> MessageEntity:
         """
         LLMからの応答を生成してアシスタントメッセージとして追加
@@ -112,11 +113,16 @@ class MessageHandler:
             LLMClientError: LLM呼び出しに失敗した場合
         """
         # 会話履歴を取得
-        message_uuid_list = chat_tree.get_conversation_path(user_message_uuid)
-        conversation_history = self.repo.load_chat_history(message_uuid_list)
+        conversation_history = chat_tree.get_conversation_path(user_message)
+        # conversation_history = await self.repo.load_chat_history(message_uuid_list)
         
         # LLMから応答を取得
-        llm_response = await self.llm_client.get_response(conversation_history)
+        llm_response = await self.llm_client.get_response(
+            conversation_history,
+            llm_model
+            )
+
+        llm_message_entity = await self.add_assistant_message(chat_tree, llm_response, user_message)
         
         # アシスタントメッセージとして追加
-        return await self.add_assistant_message(chat_tree, llm_response, user_message_uuid)
+        return llm_message_entity
