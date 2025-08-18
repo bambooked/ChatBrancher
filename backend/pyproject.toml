@@ -18,14 +18,14 @@ dev = [
     "pytest>=8.4.1",
     "pytest-asyncio>=1.0.0",
     "ruff>=0.4.4",
-    "ty>=0.0.1a14",
+    "ty>=0.0.1a18",
 ]
 
 [tool.ruff]
 line-length = 100
 target-version = "py312"
 exclude = ["venv", "__pycache__", "build", "dist"]
-fix = true  # 自動修正を有効にする場合（必要なら）
+fix = true
 
 # [tool.ruff.lint]
 # extend-ignore = ["E203", "W503"]  # flake8と同様の無視ルール
