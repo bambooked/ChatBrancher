@@ -6,8 +6,8 @@ def trasnport_message_entity(
     ""
     return [
         {
-            "role":str(message_entity.role),
-            "content":str(message_entity.content)
+            "role": message_entity.role.value,
+            "content": message_entity.content
         }
         for message_entity in message_entity_list
         ]
