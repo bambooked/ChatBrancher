@@ -6,7 +6,7 @@ class OpenRouterClient:
     CHAT_ENDPOINT = "/chat/completions"
     MODELS_ENDPOINT = "/models"
 
-    def __init__(self, api_key:str) -> None:
+    def __init__(self, api_key: str|None) -> None:
         self.headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {api_key}",

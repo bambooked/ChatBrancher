@@ -9,6 +9,6 @@ class LLMCAdapterProtcol(Protocol):
         model:str,
         temperature:float = 0.7,
         max_tokens:int = 1000
-        ):
+        ) -> dict:
         print("this is protocl, not implement!")
-        return "hoge"
+        return {}
