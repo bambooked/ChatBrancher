@@ -122,7 +122,7 @@ class MessageHandler:
             llm_model
             )
 
-        llm_message_entity = await self.add_assistant_message(chat_tree, llm_response, user_message)
+        llm_message_entity = await self.add_assistant_message(chat_tree, llm_response["content"], user_message)
         
         # アシスタントメッセージとして追加
         return llm_message_entity
