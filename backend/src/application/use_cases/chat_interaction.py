@@ -4,8 +4,9 @@ from .services.message_handler import MessageHandler
 
 
 class ChatInteraction:
-    def __init__(self, message_handler: MessageHandler) -> None:
+    def __init__(self, message_handler: MessageHandler, chat_repository) -> None:
         self.message_handler = message_handler
+        self.chat_repository = chat_repository
         self.chat_tree = ChatTreeEntity()
 
     async def start_chat(self, initial_message: str) -> ChatTreeEntity:
@@ -14,8 +15,16 @@ class ChatInteraction:
         self.chat_tree.create_new(initial_message_entity)
         return self.chat_tree
 
-    async def restart_chat(self, chat_uuid) -> None:
-        pass
+    async def restart_chat(self, chat_uuid: str) -> ChatTreeEntity:
+        """チャットを再開する"""
+        message_list = await self.chat_repository.get_chat_tree_messages(chat_uuid)
+        if not message_list:
+            raise ValueError(f"Chat tree with ID {chat_uuid} not found")
+        
+        # メッセージリストからチャットツリーを復元
+        self.chat_tree = ChatTreeEntity.restore_from_message_list(message_list)
+        return self.chat_tree
+        
 
     async def send_message_and_get_response(
             self,
@@ -54,3 +63,16 @@ class ChatInteraction:
         if self.chat_tree is None:
             return False
         return self.chat_tree.can_add_message_to(parent_message)
+    
+    async def get_chat_list(self) -> list[str]:
+        """全チャット一覧を取得（開発用 - 本番では認証が必要）"""
+        return await self.chat_repository.get_all_chat_tree_ids()
+    
+    async def get_chat_tree(self, chat_uuid: str) -> ChatTreeEntity:
+        """指定されたチャットツリーを取得（現在のインスタンスを変更せずに返す）"""
+        message_list = await self.chat_repository.get_chat_tree_messages(chat_uuid)
+        if not message_list:
+            raise ValueError(f"Chat tree with ID {chat_uuid} not found")
+        
+        # 新しいインスタンスとして復元して返す
+        return ChatTreeEntity.restore_from_message_list(message_list)
