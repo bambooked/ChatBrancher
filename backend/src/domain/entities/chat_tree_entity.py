@@ -1,6 +1,12 @@
+from typing import List, Dict, Any
 from anytree import find, NodeMixin
+from anytree.importer import DictImporter
 
 from .message_entity import MessageEntity
+from ..services.tree_reconstruction import (
+    convert_parent_uuid_to_children_format,
+    convert_anytree_to_message_node
+)
 
 
 class MessageNode(NodeMixin):
@@ -29,9 +35,6 @@ class ChatTreeEntity:
         """メッセージをツリーに追加"""
         parent_node = self.pick_message_from_uuid(self.root_node, parent_message)
         MessageNode(parent=parent_node, message = message)
-
-    def revert_from_dict(self, history: dict) -> None:
-        pass
     
     def get_conversation_path(self, target_message: MessageEntity) -> list[MessageEntity]:
         """指定メッセージまでの会話履歴パスを取得"""
@@ -46,4 +49,39 @@ class ChatTreeEntity:
             return True
         except ValueError:
             return False
+    
+    @classmethod
+    def restore_from_message_list(cls, messages: List[Dict[str, Any]]) -> 'ChatTreeEntity':
+        """
+        メッセージリスト（parent_uuid形式）からChatTreeEntityを復元
+        
+        Args:
+            messages: parent_uuidを含むメッセージ辞書のリスト
+            
+        Returns:
+            復元されたChatTreeEntity
+            
+        Raises:
+            ValueError: データ形式が不正な場合
+        """
+        if not messages:
+            raise ValueError("Messages list is empty")
+        
+        # parent_uuid形式からchildren形式に変換
+        root_dict = convert_parent_uuid_to_children_format(messages)
+        if root_dict is None:
+            raise ValueError("Could not find root node")
+        
+        # anytreeで木構造を構築
+        importer = DictImporter()
+        anytree_root = importer.import_(root_dict)
+        
+        # MessageNodeに変換
+        message_root = convert_anytree_to_message_node(anytree_root)
+        
+        # ChatTreeEntityを構築
+        chat_tree = cls()
+        chat_tree.root_node = message_root
+        
+        return chat_tree
         
