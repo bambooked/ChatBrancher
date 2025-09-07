@@ -1,6 +1,6 @@
 from tortoise.models import Model
 from tortoise import fields
-from src.domain.entities.message_entity import Role
+from domain.entities.message_entity import Role
 
 
 class MessageModel(Model):

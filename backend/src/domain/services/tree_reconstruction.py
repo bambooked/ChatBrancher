@@ -4,8 +4,8 @@
 from typing import Dict, List, Optional, Any
 from anytree import AnyNode
 
-from src.domain.entities.message_entity import MessageEntity, Role
-from src.domain.entities.chat_tree_entity import MessageNode
+from domain.entities.message_entity import MessageEntity, Role
+# MessageNodeは循環インポートを避けるため、必要に応じて関数内でインポート
 
 
 def convert_parent_uuid_to_children_format(messages: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
@@ -77,6 +77,9 @@ def convert_anytree_to_message_node(anytree_node: AnyNode):
     Returns:
         変換されたMessageNode
     """
+    # 循環インポートを避けるためにここでインポート
+    from domain.entities.chat_tree_entity import MessageNode
+    
     # MessageEntityを作成
     message_entity = MessageEntity(
         uuid=anytree_node.uuid,

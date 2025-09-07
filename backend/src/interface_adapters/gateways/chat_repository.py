@@ -1,6 +1,6 @@
-from src.application.ports.output.chat_repository import ChatRepositoryProtcol
-from src.domain.entities.message_entity import MessageEntity
-from src.infrastructure.models import MessageModel, AssistantMessageDetail
+from application.ports.output.chat_repository import ChatRepositoryProtcol
+from domain.entities.message_entity import MessageEntity
+from infrastructure.models import MessageModel, AssistantMessageDetail
 
 
 class ChatRepositoryImpl(ChatRepositoryProtcol):
