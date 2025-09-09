@@ -2,8 +2,8 @@ from typing import List, Dict, Any
 from anytree import find, NodeMixin
 from anytree.importer import DictImporter
 
-from .message_entity import MessageEntity
-from ..services.tree_reconstruction import (
+from domain.entities.message_entity import MessageEntity
+from domain.services.tree_reconstruction import (
     convert_parent_uuid_to_children_format,
     convert_anytree_to_message_node
 )

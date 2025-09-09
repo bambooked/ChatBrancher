@@ -1,6 +1,6 @@
 from domain.entities.chat_tree_entity import ChatTreeEntity
 from domain.entities.message_entity import MessageEntity
-from .services.message_handler import MessageHandler
+from application.use_cases.services.message_handler import MessageHandler
 
 
 class ChatInteraction:
