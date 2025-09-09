@@ -18,6 +18,8 @@ class MessageHandler:
     async def create_system_message(
             self,
             content: str,
+            chat_tree_id: str,
+            user_context_id: str|None = None
         ) -> MessageEntity:
         """
         
@@ -30,7 +32,9 @@ class MessageHandler:
         self, 
         chat_tree: ChatTreeEntity, 
         content: str, 
-        parent_message: MessageEntity
+        parent_message: MessageEntity,
+        chat_tree_id: str,
+        user_context_id: str|None = None
     ) -> MessageEntity:
         """
         ユーザーメッセージを作成・保存・ツリーに追加
@@ -52,7 +56,9 @@ class MessageHandler:
         self, 
         chat_tree: ChatTreeEntity, 
         content: str, 
-        parent_message: MessageEntity
+        parent_message: MessageEntity,
+        chat_tree_id: str,
+        user_context_id: str|None = None
     ) -> MessageEntity:
         """
         アシスタントメッセージを作成・保存・ツリーに追加
@@ -96,7 +102,9 @@ class MessageHandler:
         self, 
         chat_tree: ChatTreeEntity, 
         user_message: MessageEntity,
-        llm_model: str
+        llm_model: str,
+        chat_tree_id: str,
+        user_context_id: str|None = None
     ) -> MessageEntity:
         """
         LLMからの応答を生成してアシスタントメッセージとして追加

@@ -4,7 +4,12 @@ from .services.message_handler import MessageHandler
 
 
 class ChatInteraction:
-    def __init__(self, message_handler: MessageHandler, chat_repository) -> None:
+    def __init__(
+            self,
+            message_handler: MessageHandler,
+            chat_repository,
+            user_context_id: str|None = None
+            ) -> None:
         self.message_handler = message_handler
         self.chat_repository = chat_repository
         self.chat_tree = ChatTreeEntity()
@@ -76,3 +81,8 @@ class ChatInteraction:
         
         # 新しいインスタンスとして復元して返す
         return ChatTreeEntity.restore_from_message_list(message_list)
+    
+    @property
+    def uuid(self) -> str|None:
+        """チャットツリーのUUIDを取得"""
+        return self.chat_tree_id
