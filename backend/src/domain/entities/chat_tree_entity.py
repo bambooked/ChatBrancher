@@ -1,4 +1,6 @@
 from typing import List, Dict, Any
+import uuid
+
 from anytree import find, NodeMixin
 from anytree.importer import DictImporter
 
@@ -22,8 +24,13 @@ class ChatTreeEntity:
     def __init__(self) -> None:
         pass
 
-    def create_new(self, initial_message: MessageEntity) -> None:
+    def new_chat(self, initial_message: MessageEntity) -> None:
         self.root_node = MessageNode(parent=None, message = initial_message)
+        self.uuid = uuid.uuid4()
+
+    def revert_chat(self, chat_uuid: str, messages: List[Dict[str, Any]]) -> None:
+        self.restore_from_message_list(messages)
+        self.uuid = chat_uuid
 
     def pick_message_from_uuid(self, root_node: MessageNode, message: MessageEntity) -> MessageNode:
         found = find(root_node, lambda node :str(node.message.uuid) == str(message.uuid))
