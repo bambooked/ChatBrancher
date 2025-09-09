@@ -1,18 +1,34 @@
 from abc import ABC, abstractmethod
 
 from domain.entities.message_entity import MessageEntity
+from domain.entities.chat_tree_entity import ChatTreeEntity
 
 class ChatRepositoryProtcol(ABC):
     @abstractmethod
-    async def save_message(self, message_entity: MessageEntity, chat_tree_id: str, parent_uuid: str | None = None, user_context_id: str | None = None) -> None:
+    async def save_message(
+        self,
+        message_entity: MessageEntity,
+        chat_tree:ChatTreeEntity | None = None,
+        user_context_id: str | None = None
+        ) -> None:
+        ""
         pass
     
     @abstractmethod
-    async def save_assistant_message_detail(self, message_uuid: str, llm_details: dict) -> None:
+    async def save_assistant_message_detail(
+        self,
+        message_uuid: str,
+        llm_details: dict
+        ) -> None:
+        ""
         pass
     
     @abstractmethod
-    async def get_chat_tree_messages(self, chat_tree_id: str) -> list[dict] | None:
+    async def get_chat_tree_messages(
+        self,
+        chat_tree_id: str
+        ) -> list[dict] | None:
+        ""
         pass
 
     

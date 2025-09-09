@@ -1,5 +1,6 @@
 from application.ports.output.chat_repository import ChatRepositoryProtcol
 from domain.entities.message_entity import MessageEntity
+from domain.entities.chat_tree_entity import ChatTreeEntity
 from infrastructure.models import MessageModel, AssistantMessageDetail
 
 
@@ -8,7 +9,11 @@ class ChatRepositoryImpl(ChatRepositoryProtcol):
         super().__init__()
 
     
-    async def save_message(self, message_entity: MessageEntity, chat_tree_id: str, parent_uuid: str | None = None, user_context_id: str | None = None) -> None:
+    async def save_message(
+            self, 
+            message_entity: MessageEntity, 
+            chat_tree: ChatTreeEntity| None = None,
+            user_context_id: str | None = None) -> None:
         """
         MessageEntityをデータベースに保存
         
