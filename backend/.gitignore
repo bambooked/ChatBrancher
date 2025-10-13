@@ -16,3 +16,6 @@ doc/claude-tips/
 
 # vim関連(vimで一時的に作業することがあるので)
 .swp
+
+# data
+*.sqlite3

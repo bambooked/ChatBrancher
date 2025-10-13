@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "aerich>=0.9.2",
     "anytree>=2.13.0",
     "httpx[http2]>=0.28.1",
     "pydantic>=2.11.7",
@@ -15,18 +16,17 @@ dependencies = [
 [dependency-groups]
 dev = [
     "bandit>=1.8.5",
-    "pre-commit>=4.2.0",
     "pytest>=8.4.1",
     "pytest-asyncio>=1.0.0",
     "ruff>=0.4.4",
-    "ty>=0.0.1a14",
+    "ty>=0.0.1a21",
 ]
 
 [tool.ruff]
 line-length = 100
 target-version = "py312"
 exclude = ["venv", "__pycache__", "build", "dist"]
-fix = true  # 自動修正を有効にする場合（必要なら）
+fix = true
 
 # [tool.ruff.lint]
 # extend-ignore = ["E203", "W503"]  # flake8と同様の無視ルール
@@ -36,3 +36,8 @@ addopts = "-ra"
 testpaths = ["src/tests"]
 python_files = "test_*.py"
 pythonpath = ["src"]
+
+[tool.aerich]
+tortoise_orm = "infrastructure.db.config.TORTOISE_ORM"
+location = "./migrations"
+src_folder = "./."
