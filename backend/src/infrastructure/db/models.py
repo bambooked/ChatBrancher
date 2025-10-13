@@ -3,6 +3,16 @@ from tortoise import fields
 from domain.entities.message_entity import Role
 
 
+class ChatTreeDetail(Model):
+    "チャットの詳細を保持する"
+    uuid = fields.UUIDField(pk=True)
+    created = fields.DatetimeField(auto_now_add=True)
+    updated = fields.DatetimeField(auto_now=True)
+
+    class Meta(Model.Meta):# 型チェッカー対策
+        table = "chat_tree_detail"
+
+
 class MessageModel(Model):
     """
     メッセージのTortoiseモデル（シンプル版：メモリ上で木構造操作）
@@ -20,13 +30,22 @@ class MessageModel(Model):
     uuid = fields.UUIDField(pk=True)
     role = fields.CharEnumField(Role)
     content = fields.TextField()
-    parent_uuid = fields.UUIDField(null=True)
-    chat_tree_id = fields.UUIDField()
+    parent = fields.ForeignKeyField(
+        "models.MessageModel",
+        related_name="children",
+        null=True,
+        on_delete=fields.SET_NULL,  # ここは要件に応じて CASCADE/SET_NULL を選ぶ
+    )
+    chat_tree = fields.ForeignKeyField(
+        "models.ChatTreeDetail",
+        related_name="messages",
+        on_delete=fields.CASCADE,
+    )
     user_context_id = fields.UUIDField(null=True)
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
     
-    class Meta:
+    class Meta(Model.Meta):# 型チェッカー対策
         table = "messages"
 
 
@@ -48,8 +67,12 @@ class AssistantMessageDetail(Model):
         object_: レスポンスオブジェクト種別
         created_timestamp: LLMでの作成タイムスタンプ
     """
-    message = fields.OneToOneField('models.MessageModel', pk=True, on_delete=fields.CASCADE)
-    provider = fields.CharField(max_length=50, null=True)
+    message = fields.OneToOneField(
+        "models.MessageModel",
+        pk=True,
+        on_delete=fields.CASCADE
+    )
+    provider = fields.CharField(max_length=100, null=True)
     model_name = fields.CharField(max_length=100, null=True)
     prompt_tokens = fields.IntField(default=0)
     completion_tokens = fields.IntField(default=0)
@@ -61,5 +84,5 @@ class AssistantMessageDetail(Model):
     object_ = fields.CharField(max_length=50, null=True)
     created_timestamp = fields.CharField(max_length=50, null=True)
     
-    class Meta:
+    class Meta(Model.Meta):# 型チェッカー対策
         table = "assistant_message_details"
