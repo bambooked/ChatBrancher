@@ -1,5 +1,6 @@
 from domain.entities.chat_tree_entity import ChatTreeEntity
 from domain.entities.message_entity import MessageEntity
+from domain.entities.user_entity import UserEntity
 from application.use_cases.services.message_handler import MessageHandler
 from application.ports.output.chat_repository import ChatRepositoryProtcol
 
@@ -9,17 +10,20 @@ class ChatInteraction:
             self,
             message_handler: MessageHandler,
             chat_repository: ChatRepositoryProtcol,
-            chat_tree: ChatTreeEntity
+            chat_tree: ChatTreeEntity,
+            current_user: UserEntity
             ) -> None:
+        "DIいっぱいいっぱい…"
         self.message_handler = message_handler
         self.chat_repository = chat_repository
         self.chat_tree = chat_tree
+        self.user= current_user
 
-    async def start_chat(self, initial_message: str) -> ChatTreeEntity:
+    async def start_chat(self, initial_message: str) -> None:
         """チャットを開始し、初期システムメッセージでツリーを初期化"""
-        initial_message_entity = await self.message_handler.create_system_message(initial_message)
-        self.chat_tree.create_new(initial_message_entity)
-        return self.chat_tree
+        initial_message_entity = await self.message_handler.create_initial_message(initial_message)
+        self.chat_tree.new_chat(initial_message_entity)
+        await self.chat_repository.save_message(initial_message_entity, self.chat_tree, self.user)
 
     async def send_message_and_get_response(
             self,
@@ -37,7 +41,7 @@ class ChatInteraction:
         Returns:
             MessageEntity: 生成されたアシスタントメッセージ
         """
-        if not self.can_add_message_to(parent_message):
+        if not self._can_add_message_to(parent_message):
             raise ValueError(f"Cannot add message to parent {parent_message.uuid}")
         
         # ユーザーメッセージ追加
@@ -53,7 +57,7 @@ class ChatInteraction:
         # LLM応答生成
         return llm_responce
     
-    def can_add_message_to(self, parent_message: MessageEntity) -> bool:
+    def _can_add_message_to(self, parent_message: MessageEntity) -> bool:
         """指定の親にメッセージを追加可能かチェック"""
         if self.chat_tree is None:
             return False
