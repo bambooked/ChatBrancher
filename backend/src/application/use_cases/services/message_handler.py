@@ -108,21 +108,21 @@ class MessageHandler:
         return message
     
     async def generate_llm_response(
-        self, 
-        chat_tree: ChatTreeEntity, 
+        self,
+        chat_tree: ChatTreeEntity,
         user_message: MessageEntity,
         llm_model: str,
     ) -> MessageEntity:
         """
         LLMからの応答を生成してアシスタントメッセージとして追加
-        
+
         Args:
             tree: 対象のチャットツリー
             user_message_uuid: 応答対象のユーザーメッセージUUID
-            
+
         Returns:
             MessageEntity: 生成されたアシスタントメッセージ
-            
+
         Raises:
             ValueError: ユーザーメッセージが見つからない場合
             LLMClientError: LLM呼び出しに失敗した場合
@@ -130,7 +130,7 @@ class MessageHandler:
         # 会話履歴を取得
         conversation_history = chat_tree.get_conversation_path(user_message)
         # conversation_history = await self.repo.load_chat_history(message_uuid_list)
-        
+
         # LLMから応答を取得
         llm_response = await self.llm_client.get_response(
             conversation_history,
@@ -138,6 +138,14 @@ class MessageHandler:
             )
 
         llm_message_entity = await self.add_assistant_message(chat_tree, llm_response["content"], user_message)
-        
+
+        # AssistantMessageDetailを保存（生のAPIレスポンスを使用）
+        raw_response = llm_response.get('raw_response', llm_response)
+        await self.repo.save_assistant_message_detail(
+            llm_message_entity,
+            raw_response,
+            self.user
+        )
+
         # アシスタントメッセージとして追加
         return llm_message_entity

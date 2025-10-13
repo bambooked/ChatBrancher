@@ -22,5 +22,9 @@ class LLMAdapter(LLMCAdapterProtcol):
             max_tokens
             )
         formatted_responce = flat_api_response(response)
-        
-        return formatted_responce
+
+        # フラット化されたレスポンスと生のレスポンスの両方を返す
+        return {
+            **formatted_responce,
+            'raw_response': response  # save_assistant_message_detailで使用するため
+        }
