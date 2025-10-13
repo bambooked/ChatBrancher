@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 import uuid
 
 from anytree import find, NodeMixin
@@ -22,7 +22,8 @@ class ChatTreeEntity:
     チャットの会話ツリーを管理するドメインエンティティ
     """
     def __init__(self) -> None:
-        pass
+        self.uuid: Optional[uuid.UUID] = None
+        self.root_node: Optional[MessageNode] = None
 
     def new_chat(self, initial_message: MessageEntity) -> None:
         self.root_node = MessageNode(parent=None, message = initial_message)

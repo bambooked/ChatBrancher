@@ -82,9 +82,9 @@ def convert_anytree_to_message_node(anytree_node: AnyNode):
     
     # MessageEntityを作成
     message_entity = MessageEntity(
-        uuid=anytree_node.uuid,
-        role=Role(anytree_node.role),
-        content=anytree_node.content
+        uuid=getattr(anytree_node, 'uuid'),
+        role=Role(getattr(anytree_node, 'role')),
+        content=getattr(anytree_node, 'content')
     )
     
     # MessageNodeを作成
