@@ -53,7 +53,9 @@
       "Bash(uv run:*)",
       "Bash(PYTHONPATH=/Users/take/pp/ChatBrancher/backend/src uv run python src/tests/dev/llm_response.py)",
       "WebSearch",
-      "WebFetch(domain:anytree.readthedocs.io)"
+      "WebFetch(domain:anytree.readthedocs.io)",
+      "Bash(PYTHONPATH=src uv run aerich init:*)",
+      "Bash(PYTHONPATH=src uv run:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
