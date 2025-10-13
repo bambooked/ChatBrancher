@@ -2,37 +2,54 @@ from application.ports.output.chat_repository import ChatRepositoryProtcol
 from domain.entities.message_entity import MessageEntity
 from domain.entities.chat_tree_entity import ChatTreeEntity
 from domain.entities.user_entity import UserEntity
-from infrastructure.db.models import MessageModel, AssistantMessageDetail
+from infrastructure.db.models import MessageModel, AssistantMessageDetail, ChatTreeDetail
 
 
 class ChatRepositoryImpl(ChatRepositoryProtcol):
     def __init__(self) -> None:
         super().__init__()
 
+    async def ensure_chat_tree_detail(self, chat_tree: ChatTreeEntity) -> ChatTreeDetail:
+        """
+        ChatTreeEntityに対応するChatTreeDetailがなければ作成する
+        """
+        chat_tree_detail, created = await ChatTreeDetail.get_or_create(uuid=chat_tree.uuid)
+        return chat_tree_detail
+
     
     async def save_message(
-            self, 
-            message_entity: MessageEntity, 
+            self,
+            message_entity: MessageEntity,
             chat_tree: ChatTreeEntity,
-            current_user: UserEntity, 
+            current_user: UserEntity,
             ) -> None:
         """
         Messageをデータベースに保存
         """
-        try:
-            parent_message_node = chat_tree.pick_message_from_uuid(chat_tree.root_node, message_entity)
-            parent_uuid = parent_message_node.message.uuid
-            parent_message_model = await MessageModel.get(uuid=parent_uuid)
-        except ValueError:# rootということ。
-            parent_message_model = None
+        chat_tree_detail = await self.ensure_chat_tree_detail(chat_tree)
+
+        parent_message_model = None
+        if chat_tree.root_node is not None:
+            try:
+                # message_entity自身をツリーから検索
+                message_node = chat_tree.pick_message_from_uuid(chat_tree.root_node, message_entity)
+
+                # その親ノードを取得（重要：.parentでアクセス）
+                if message_node.parent is not None:
+                    parent_uuid = message_node.parent.message.uuid
+                    parent_message_model = await MessageModel.get(uuid=parent_uuid)
+                # message_node.parentがNoneの場合は、parent_message_modelはNoneのまま（ルートノード）
+            except ValueError:
+                # message_entityがツリーに見つからない場合
+                parent_message_model = None
 
         await MessageModel.create(
             uuid=message_entity.uuid,
             role=message_entity.role,
             content=message_entity.content,
             parent=parent_message_model,
-            chat_tree = chat_tree,
-            user_context_id=current_user
+            chat_tree=chat_tree_detail,
+            user_context_id=current_user.uuid
         )
     
     async def save_assistant_message_detail(
