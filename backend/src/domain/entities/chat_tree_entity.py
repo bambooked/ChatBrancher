@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import Any
 import uuid
 
 from anytree import find, NodeMixin
@@ -28,7 +28,7 @@ class ChatTreeEntity:
         self.root_node = MessageNode(parent=None, message = initial_message)
         self.uuid = uuid.uuid4()
 
-    def revert_chat(self, chat_uuid: str, messages: List[Dict[str, Any]]) -> None:
+    def revert_chat(self, chat_uuid: str, messages: list[dict[str, Any]]) -> None:
         self.restore_from_message_list(messages)
         self.uuid = chat_uuid
 
@@ -58,7 +58,7 @@ class ChatTreeEntity:
             return False
     
     @classmethod
-    def restore_from_message_list(cls, messages: List[Dict[str, Any]]) -> 'ChatTreeEntity':
+    def restore_from_message_list(cls, messages: list[dict[str, Any]]) -> 'ChatTreeEntity':
         """
         メッセージリスト（parent_uuid形式）からChatTreeEntityを復元
         
