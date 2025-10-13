@@ -1,7 +1,8 @@
 from application.ports.output.chat_repository import ChatRepositoryProtcol
 from domain.entities.message_entity import MessageEntity
 from domain.entities.chat_tree_entity import ChatTreeEntity
-from infrastructure.models import MessageModel, AssistantMessageDetail
+from domain.entities.user_entity import UserEntity
+from infrastructure.db.models import MessageModel, AssistantMessageDetail
 
 
 class ChatRepositoryImpl(ChatRepositoryProtcol):
@@ -12,81 +13,79 @@ class ChatRepositoryImpl(ChatRepositoryProtcol):
     async def save_message(
             self, 
             message_entity: MessageEntity, 
-            chat_tree: ChatTreeEntity| None = None,
-            user_context_id: str | None = None) -> None:
+            chat_tree: ChatTreeEntity,
+            current_user: UserEntity, 
+            ) -> None:
         """
-        MessageEntityをデータベースに保存
-        
-        Args:
-            message_entity: 保存するメッセージエンティティ
-            chat_tree_id: チャット木のID
-            parent_uuid: 親メッセージのUUID
-            user_context_id: ユーザーコンテキストID
+        Messageをデータベースに保存
         """
+        try:
+            parent_message_node = chat_tree.pick_message_from_uuid(chat_tree.root_node, message_entity)
+            parent_uuid = parent_message_node.message.uuid
+            parent_message_model = await MessageModel.get(uuid=parent_uuid)
+        except ValueError:# rootということ。
+            parent_message_model = None
+
         await MessageModel.create(
             uuid=message_entity.uuid,
             role=message_entity.role,
             content=message_entity.content,
-            parent_uuid=parent_uuid,
-            chat_tree_id=chat_tree_id,
-            user_context_id=user_context_id
+            parent=parent_message_model,
+            chat_tree = chat_tree,
+            user_context_id=current_user
         )
     
-    async def save_assistant_message_detail(self, message_uuid: str, llm_details: dict) -> None:
+    async def save_assistant_message_detail(
+            self,
+            related_message: MessageEntity,
+            llm_details: dict,
+            current_user: UserEntity
+            ) -> None:
         """
         アシスタントメッセージの詳細情報を保存
-        
-        Args:
-            message_uuid: メッセージのUUID
-            llm_details: LLMの詳細情報辞書
         """
-        message_model = await MessageModel.get(uuid=message_uuid)
+        # 関連するMessageModelを取得
+        message_model = await MessageModel.get(uuid=related_message.uuid)
+
+        # AssistantMessageDetailを作成
         await AssistantMessageDetail.create(
             message=message_model,
-            provider=llm_details.get('provider'),
-            model_name=llm_details.get('model'),
-            prompt_tokens=llm_details.get('prompt_tokens', 0),
-            completion_tokens=llm_details.get('completion_tokens', 0),
-            total_tokens=llm_details.get('total_tokens', 0),
-            temperature=llm_details.get('temperature'),
-            max_tokens=llm_details.get('max_tokens'),
-            finish_reason=llm_details.get('finish_reason'),
-            gen_id=llm_details.get('gen_id'),
-            object_=llm_details.get('object_'),
-            created_timestamp=llm_details.get('created')
+            provider=llm_details.get("provider"),
+            model_name=llm_details.get("model"),
+            prompt_tokens=llm_details.get("usage", {}).get("prompt_tokens", 0),
+            completion_tokens=llm_details.get("usage", {}).get("completion_tokens", 0),
+            total_tokens=llm_details.get("usage", {}).get("total_tokens", 0),
+            temperature=llm_details.get("temperature"),
+            max_tokens=llm_details.get("max_tokens"),
+            finish_reason=llm_details.get("finish_reason"),
+            gen_id=llm_details.get("id"),
+            object_=llm_details.get("object"),
+            created_timestamp=llm_details.get("created")
         )
     
-    async def get_chat_tree_messages(self, chat_tree_id: str) -> list[dict]:
+    async def get_chat_tree_messages(
+            self,
+            chat_tree_id: str,
+            current_user: UserEntity
+            ) -> list[dict]:
         """
         指定したチャット木IDに属する全てのメッセージを一括取得
-        
-        Args:
-            chat_tree_id: チャット木のID
-            
-        Returns:
-            list[dict]: 木構造復元に必要な情報を含むメッセージ辞書のリスト
-                       各辞書は uuid, parent_uuid, role, content, created_at を含む
         """
-        message_models = await MessageModel.filter(chat_tree_id=chat_tree_id).order_by('created_at')
-        return [
-            {
-                'uuid': str(model.uuid),
-                'parent_uuid': str(model.parent_uuid) if model.parent_uuid else None,
-                'role': model.role.value,
-                'content': model.content,
-                'created_at': model.created_at.isoformat()
-            }
-            for model in message_models
-        ]
+        return []
 
-    
-    async def get_all_chat_tree_ids(self) -> list[str]:
+    async def get_all_chat_tree_ids(
+            self,
+            current_user: UserEntity
+            ) -> list[str]:
         """
-        全てのチャットツリーIDを取得（開発用 - 本番では認証が必要）
-        
-        Returns:
-            list[str]: 存在する全チャットツリーIDのリスト（重複なし）
+        指定したユーザーに紐づく全てのチャットツリーIDを取得
         """
-        message_models = await MessageModel.all().distinct().values_list('chat_tree_id', flat=True)
-        return [str(chat_tree_id) for chat_tree_id in message_models if chat_tree_id]
-    
+        # ユーザーに紐づくメッセージから一意のチャットツリーIDを取得
+        messages = await MessageModel.filter(
+            user_context_id=current_user.uuid
+        ).prefetch_related("chat_tree")
+
+        # 重複を除いてチャットツリーIDのリストを作成
+        chat_tree_ids = list(set([str(msg.chat_tree.uuid) for msg in messages]))
+
+        return chat_tree_ids

@@ -33,4 +33,12 @@ class ChatRepositoryProtcol(ABC):
         ) -> list[dict] | None:
         ""
         pass
+
+    @abstractmethod
+    async def get_all_chat_tree_ids(
+        self,
+        current_user: UserEntity
+        ) -> list[str]:
+        "指定したユーザーに紐づく全てのチャットツリーIDを取得"
+        pass
     
