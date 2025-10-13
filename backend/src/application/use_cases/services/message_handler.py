@@ -2,6 +2,7 @@ from application.ports.output.chat_repository import ChatRepositoryProtcol
 from application.ports.input.llm_adapter import LLMCAdapterProtcol
 from domain.entities.chat_tree_entity import ChatTreeEntity
 from domain.entities.message_entity import MessageEntity
+from domain.entities.user_entity import UserEntity
 
 class MessageHandler:
     """
@@ -11,21 +12,33 @@ class MessageHandler:
     LLMは外部サービスとして扱い、応答生成のみ委譲する。
     """
     
-    def __init__(self, repo: ChatRepositoryProtcol, llm_client: LLMCAdapterProtcol) -> None:
+    def __init__(
+            self,
+            repo: ChatRepositoryProtcol,
+            llm_client: LLMCAdapterProtcol,
+            current_user: UserEntity
+            ) -> None:
         self.repo = repo
         self.llm_client = llm_client
+        self.user = current_user
 
-    async def create_system_message(
+    async def create_initial_message(
             self,
-            content: str,
-            chat_tree_id: str,
-            user_context_id: str|None = None
+            content: str|None,
         ) -> MessageEntity:
         """
+        システムメッセージエンティティを作成（保存はしない）
+        注意：強制的にsystemメッセージとなる。
         
+        Args:
+            content: メッセージ内容
+            
+        Returns:
+            MessageEntity: 作成されたシステムメッセージ
         """
+        if not content:
+            content = ""
         message = MessageEntity.create_system_message(content)
-        await self.repo.save_message(message)
         return message
         
     async def add_user_message(
@@ -33,8 +46,6 @@ class MessageHandler:
         chat_tree: ChatTreeEntity, 
         content: str, 
         parent_message: MessageEntity,
-        chat_tree_id: str,
-        user_context_id: str|None = None
     ) -> MessageEntity:
         """
         ユーザーメッセージを作成・保存・ツリーに追加
@@ -48,8 +59,8 @@ class MessageHandler:
             MessageEntity: 作成されたユーザーメッセージ
         """
         message = MessageEntity.create_user_message(content)
-        await self.repo.save_message(message)
         chat_tree.add_message(parent_message, message)
+        await self.repo.save_message(message, chat_tree, self.user)
         return message
     
     async def add_assistant_message(
@@ -57,8 +68,6 @@ class MessageHandler:
         chat_tree: ChatTreeEntity, 
         content: str, 
         parent_message: MessageEntity,
-        chat_tree_id: str,
-        user_context_id: str|None = None
     ) -> MessageEntity:
         """
         アシスタントメッセージを作成・保存・ツリーに追加
@@ -72,8 +81,8 @@ class MessageHandler:
             MessageEntity: 作成されたアシスタントメッセージ
         """
         message = MessageEntity.create_assistant_message(content)
-        await self.repo.save_message(message)
         chat_tree.add_message(parent_message, message)
+        await self.repo.save_message(message, chat_tree, self.user)
         return message
     
     async def add_system_message(
@@ -94,8 +103,8 @@ class MessageHandler:
             MessageEntity: 作成されたシステムメッセージ
         """
         message = MessageEntity.create_system_message(content)
-        await self.repo.save_message(message)
         chat_tree.add_message(parent_message, message)
+        await self.repo.save_message(message, chat_tree, self.user)
         return message
     
     async def generate_llm_response(
@@ -103,8 +112,6 @@ class MessageHandler:
         chat_tree: ChatTreeEntity, 
         user_message: MessageEntity,
         llm_model: str,
-        chat_tree_id: str,
-        user_context_id: str|None = None
     ) -> MessageEntity:
         """
         LLMからの応答を生成してアシスタントメッセージとして追加
