@@ -93,3 +93,7 @@ class ChatTreeEntity:
         
         return chat_tree
         
+    def _render_tree(self):
+        from anytree.render import RenderTree
+        for pre, _, node in RenderTree(self.root_node):
+            print("%s%s" % (pre, node.message.content))
