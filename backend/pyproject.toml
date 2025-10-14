@@ -38,6 +38,6 @@ python_files = "test_*.py"
 pythonpath = ["src"]
 
 [tool.aerich]
-tortoise_orm = "infrastructure.db.config.TORTOISE_ORM"
+tortoise_orm = "src.infrastructure.db.config.TORTOISE_ORM"
 location = "./migrations"
-src_folder = "./."
+src_folder = "./src"
