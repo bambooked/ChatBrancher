@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from domain.entities.chat_tree_entity import ChatTreeEntity
 from domain.entities.user_entity import UserEntity
 from application.ports.output.chat_repository import ChatRepositoryProtcol
@@ -19,6 +21,7 @@ class ChatSelection:
         
         # メッセージリストからチャットツリーを復元
         self.chat_tree = ChatTreeEntity.restore_from_message_list(message_list)
+        self.chat_tree.uuid = UUID(chat_uuid)
         return self.chat_tree
     
     async def get_chat_tree(self, chat_uuid: str) -> ChatTreeEntity:

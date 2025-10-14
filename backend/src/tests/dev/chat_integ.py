@@ -12,7 +12,7 @@ from domain.entities.chat_tree_entity import ChatTreeEntity
 from domain.entities.user_entity import UserEntity
 from interface_adapters.gateways.llm_api_adapter import LLMAdapter
 from infrastructure.db.config import TORTOISE_ORM
-from infrastructure.db.models import MessageModel, ChatTreeDetail, AssistantMessageDetail
+#from infrastructure.db.models import MessageModel, ChatTreeDetail, AssistantMessageDetail
 
 from dotenv import load_dotenv
 from os import getenv
@@ -26,10 +26,11 @@ async def start_chat(interaction_handler: ChatInteraction) -> None:
 
 async def continue_chat(
         interaction_handler: ChatInteraction,
+        message: str
         ) -> None:
     parent_message = interaction_handler.chat_tree.root_node.message
     resp = await interaction_handler.send_message_and_get_response(
-        content="こんにちは",
+        content=message,
         parent_message=parent_message,
         llm_model="anthropic/claude-3-haiku"
     )
@@ -61,11 +62,11 @@ async def branch_chat(selector: ChatSelection, interaction_handler: ChatInteract
     interaction_handler.chat_tree._render_tree()
 
 
-async def restart_chat(selector: ChatSelection):
+async def restart_chat(selector: ChatSelection) -> ChatTreeEntity:
     chat_uuids = await selector.get_all_chat_uuid()
     recent_chat_uuid = chat_uuids[-1]
-    
-    
+    chat_tree = await selector.restart_chat(recent_chat_uuid)
+    return chat_tree
 
 
 async def main():
@@ -85,8 +86,17 @@ async def main():
             current_user
             )
         await start_chat(interaction_handler)
-        await continue_chat(interaction_handler)
+        await continue_chat(interaction_handler, "こんにちは")
         await branch_chat(selector, interaction_handler)
+        chat_tree = await restart_chat(selector)
+        new_handler = ChatInteraction(
+            message_handler,
+            chat_repo,
+            chat_tree,
+            current_user
+            )
+        await continue_chat(new_handler, "こんにちは")
+        new_handler.chat_tree._render_tree()
     finally:
         await Tortoise.close_connections()
 
