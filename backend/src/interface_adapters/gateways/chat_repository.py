@@ -84,11 +84,36 @@ class ChatRepositoryImpl(ChatRepositoryProtcol):
             self,
             chat_tree_id: str,
             current_user: UserEntity
-            ) -> list[dict]:
+            ) -> list[dict] | None:
         """
         指定したチャット木IDに属する全てのメッセージを一括取得
         """
-        return []
+        try:
+            # ChatTreeDetailを取得
+            chat_tree_detail = await ChatTreeDetail.get(uuid=chat_tree_id)
+        except:
+            # チャットツリーが見つからない場合
+            return None
+
+        # そのチャット木に属する全てのメッセージを取得（ユーザーでフィルタリング）
+        messages = await MessageModel.filter(
+            chat_tree=chat_tree_detail,
+            user_context_id=current_user.uuid
+        ).prefetch_related("parent")
+
+        # メッセージを辞書形式に変換
+        result = []
+        for msg in messages:
+            result.append({
+                "uuid": str(msg.uuid),
+                "role": msg.role.value,  # Enumの場合は.valueで文字列化
+                "content": msg.content,
+                "parent_uuid": str(msg.parent.uuid) if msg.parent else None,
+                "created_at": msg.created_at.isoformat(),
+                "updated_at": msg.updated_at.isoformat()
+            })
+
+        return result
 
     async def get_all_chat_tree_ids(
             self,
