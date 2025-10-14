@@ -75,7 +75,11 @@ async def main():
         chat_repo = ChatRepositoryImpl()
         llm_client = OpenRouterClient(getenv("OPENROUTER_API_KEY"))
         llm_adapter =LLMAdapter(llm_client)
-        current_user = UserEntity(str(uuid.uuid4()))
+        current_user = UserEntity(
+            uuid=str(uuid.uuid4()),
+            username="test_user",
+            email="test@example.com"
+        )
         message_handler = MessageHandler(chat_repo, llm_adapter, current_user)
         chat_tree = ChatTreeEntity()
         selector = ChatSelection(chat_repo, current_user)

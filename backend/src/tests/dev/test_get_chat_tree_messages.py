@@ -41,7 +41,11 @@ async def test_get_chat_tree_messages():
         print("\n=== get_chat_tree_messages テスト開始 ===\n")
 
         # テストユーザーの準備
-        user = UserEntity(str(uuid.uuid4()))
+        user = UserEntity(
+            uuid=str(uuid.uuid4()),
+            username="test_user",
+            email="test@example.com"
+        )
         print(f"テストユーザーUUID: {user.uuid}")
 
         # リポジトリとチャットツリーの準備
