@@ -61,4 +61,7 @@ class ChatInteraction:
         """指定の親にメッセージを追加可能かチェック"""
         if self.chat_tree is None:
             return False
-        return self.chat_tree.can_add_message_to(parent_message)
+        elif not self.chat_tree.root_node.children:#chat開始時
+            return True
+        else:
+            return self.chat_tree.can_add_message_to(parent_message)
