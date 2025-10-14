@@ -1,7 +1,10 @@
 import asyncio
 import uuid
+import random
 from tortoise import Tortoise
+
 from application.use_cases.chat_interaction import ChatInteraction
+from application.use_cases.chat_selection import ChatSelection
 from application.use_cases.services.message_handler import MessageHandler
 from interface_adapters.gateways.chat_repository import ChatRepositoryImpl
 from infrastructure.openrouter_client import OpenRouterClient
@@ -19,8 +22,7 @@ async def start_chat(interaction_handler: ChatInteraction) -> None:
     await interaction_handler.start_chat(
         initial_message="あなたは優秀なアシスタントです。userは日本語の回答を期待しています。"
         )
-    print(interaction_handler.chat_tree.root_node.message.content)
-    interaction_handler.chat_tree._render_tree()
+    #print(interaction_handler.chat_tree.root_node.message.content)
 
 async def continue_chat(
         interaction_handler: ChatInteraction,
@@ -31,11 +33,39 @@ async def continue_chat(
         parent_message=parent_message,
         llm_model="anthropic/claude-3-haiku"
     )
-    print(resp)
-    pass
+    #print(resp)
 
-async def branch_chat() -> None:
-    pass
+async def branch_chat(selector: ChatSelection, interaction_handler: ChatInteraction) -> None:
+    """ランダムなメッセージから分岐してLLM応答を生成"""
+    # interaction_handler.chat_treeから直接メッセージを取得（インスタンスの一貫性を保つ）
+    if interaction_handler.chat_tree.root_node is None:
+        print("❌ ツリーにメッセージがありません")
+        return
+
+    all_nodes = [interaction_handler.chat_tree.root_node] + list(interaction_handler.chat_tree.root_node.descendants)
+    all_message_uuids = [str(node.message.uuid) for node in all_nodes]
+    all_messages = [node.message for node in all_nodes]
+
+    print(f"ツリー内のメッセージ数: {len(all_message_uuids)}")
+
+    # ランダムにメッセージを選択
+    random_message = random.choice(all_messages)
+
+    # 選択されたメッセージから分岐
+    branch_response = await interaction_handler.send_message_and_get_response(
+        content="短めに自己紹介してみて！",
+        parent_message=random_message,
+        llm_model="anthropic/claude-3-haiku"
+    )
+
+    interaction_handler.chat_tree._render_tree()
+
+
+async def restart_chat(selector: ChatSelection):
+    chat_uuids = await selector.get_all_chat_uuid()
+    recent_chat_uuid = chat_uuids[-1]
+    
+    
 
 
 async def main():
@@ -47,6 +77,7 @@ async def main():
         current_user = UserEntity(str(uuid.uuid4()))
         message_handler = MessageHandler(chat_repo, llm_adapter, current_user)
         chat_tree = ChatTreeEntity()
+        selector = ChatSelection(chat_repo, current_user)
         interaction_handler = ChatInteraction(
             message_handler,
             chat_repo,
@@ -55,6 +86,7 @@ async def main():
             )
         await start_chat(interaction_handler)
         await continue_chat(interaction_handler)
+        await branch_chat(selector, interaction_handler)
     finally:
         await Tortoise.close_connections()
 
