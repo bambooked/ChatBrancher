@@ -55,7 +55,9 @@
       "WebSearch",
       "WebFetch(domain:anytree.readthedocs.io)",
       "Bash(PYTHONPATH=src uv run aerich init:*)",
-      "Bash(PYTHONPATH=src uv run:*)"
+      "Bash(PYTHONPATH=src uv run:*)",
+      "Bash(sqlite3:*)",
+      "Bash(uv sync:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

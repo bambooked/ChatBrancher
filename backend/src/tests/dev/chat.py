@@ -161,7 +161,11 @@ async def main():
 
         # テストデータの準備（UUIDは正しい形式で生成）
         test_user_uuid = str(uuid.uuid4())
-        user = UserEntity(test_user_uuid)
+        user = UserEntity(
+            uuid=test_user_uuid,
+            username="test_user",
+            email="test@example.com"
+        )
         print(f"Test user UUID: {test_user_uuid}")
         repo = ChatRepositoryImpl()
         tree = ChatTreeEntity()

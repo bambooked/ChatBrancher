@@ -10,7 +10,7 @@ from domain.entities.chat_tree_entity import ChatTreeEntity
 from domain.entities.user_entity import UserEntity
 from interface_adapters.gateways.llm_api_adapter import LLMAdapter
 from infrastructure.db.config import TORTOISE_ORM
-from infrastructure.db.models import MessageModel, ChatTreeDetail, AssistantMessageDetail
+from infrastructure.db.models import MessageModel, ChatTreeDetail, AssistantMessageDetail, UserModel
 
 from dotenv import load_dotenv
 
@@ -29,6 +29,7 @@ async def cleanup_db():
     await AssistantMessageDetail.all().delete()
     await MessageModel.all().delete()
     await ChatTreeDetail.all().delete()
+    await UserModel.all().delete()
     print("✅ クリーンアップ完了")
 
 
@@ -41,7 +42,21 @@ async def test_get_chat_tree_messages():
         print("\n=== get_chat_tree_messages テスト開始 ===\n")
 
         # テストユーザーの準備
-        user = UserEntity(str(uuid.uuid4()))
+        user_uuid = uuid.uuid4()
+        user = UserEntity(
+            uuid=str(user_uuid),
+            username="test_user",
+            email="test@example.com"
+        )
+
+        # テストユーザーをDBに作成
+        await UserModel.create(
+            uuid=user_uuid,
+            username=user.username,
+            email=user.email,
+            password_hash="test_hash",  # テスト用のダミーハッシュ
+            is_active=True
+        )
         print(f"テストユーザーUUID: {user.uuid}")
 
         # リポジトリとチャットツリーの準備

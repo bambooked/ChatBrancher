@@ -24,14 +24,21 @@ class ChatTreeEntity:
     def __init__(self) -> None:
         self.uuid: Optional[uuid.UUID] = None
         self.root_node: Optional[MessageNode] = None
+        self.owner_uuid: Optional[str] = None
 
-    def new_chat(self, initial_message: MessageEntity) -> None:
+    def new_chat(self, initial_message: MessageEntity, owner_uuid: str) -> None:
         self.root_node = MessageNode(parent=None, message = initial_message)
         self.uuid = uuid.uuid4()
+        self.owner_uuid = owner_uuid
 
-    def revert_chat(self, chat_uuid: str, messages: list[dict[str, Any]]) -> None:
+    def revert_chat(self, chat_uuid: str, messages: list[dict[str, Any]], owner_uuid: str) -> None:
         self.restore_from_message_list(messages)
         self.uuid = chat_uuid
+        self.owner_uuid = owner_uuid
+
+    def is_owned_by(self, user_uuid: str) -> bool:
+        """指定されたユーザーがこのチャットの所有者かどうかを判定"""
+        return self.owner_uuid == user_uuid
 
     def pick_message_from_uuid(self, root_node: MessageNode, message: MessageEntity) -> MessageNode:
         found = find(root_node, lambda node :str(node.message.uuid) == str(message.uuid))
