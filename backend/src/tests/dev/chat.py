@@ -95,7 +95,7 @@ async def verify_llm_response(tree: ChatTreeEntity, handler: ChatInteraction, us
     print("🤖 Calling LLM API...")
     assistant_message = await handler.send_message_and_get_response(
         content="こんにちは！今日の天気について教えてください。",
-        parent_message=user_message,
+        parent_message_uuid=user_message.uuid,
         llm_model="anthropic/claude-3-haiku"
     )
 

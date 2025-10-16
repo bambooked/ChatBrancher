@@ -31,7 +31,7 @@ async def continue_chat(
     parent_message = interaction_handler.chat_tree.root_node.message
     resp = await interaction_handler.send_message_and_get_response(
         content=message,
-        parent_message=parent_message,
+        parent_message_uuid=parent_message.uuid,
         llm_model="anthropic/claude-3-haiku"
     )
     #print(resp)
@@ -55,7 +55,7 @@ async def branch_chat(selector: ChatSelection, interaction_handler: ChatInteract
     # 選択されたメッセージから分岐
     branch_response = await interaction_handler.send_message_and_get_response(
         content="短めに自己紹介してみて！",
-        parent_message=random_message,
+        parent_message_uuid=random_message.uuid,
         llm_model="anthropic/claude-3-haiku"
     )
 

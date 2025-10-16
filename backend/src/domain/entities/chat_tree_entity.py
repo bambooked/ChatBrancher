@@ -40,27 +40,36 @@ class ChatTreeEntity:
         """指定されたユーザーがこのチャットの所有者かどうかを判定"""
         return self.owner_uuid == user_uuid
 
-    def pick_message_from_uuid(self, root_node: MessageNode, message: MessageEntity) -> MessageNode:
-        found = find(root_node, lambda node :str(node.message.uuid) == str(message.uuid))
+    def get_message_node_by_uuid(self, message_uuid: str | uuid.UUID) -> MessageNode:
+        """UUID からメッセージノードを取得"""
+        if self.root_node is None:
+            raise ValueError("Chat tree is empty")
+
+        target_uuid = str(message_uuid)
+        found = find(self.root_node, lambda node: str(node.message.uuid) == target_uuid)
         if not found:
-            raise ValueError("Not Found Node has provided conditon")
+            raise ValueError(f"Message with UUID {target_uuid} not found")
         return found
-    
+
+    def get_message_by_uuid(self, message_uuid: str | uuid.UUID) -> MessageEntity:
+        """UUID から MessageEntity を取得"""
+        return self.get_message_node_by_uuid(message_uuid).message
+
     def add_message(self, parent_message: MessageEntity, message: MessageEntity) -> None:
         """メッセージをツリーに追加"""
-        parent_node = self.pick_message_from_uuid(self.root_node, parent_message)
+        parent_node = self.get_message_node_by_uuid(parent_message.uuid)
         MessageNode(parent=parent_node, message = message)
-    
+
     def get_conversation_path(self, target_message: MessageEntity) -> list[MessageEntity]:
         """指定メッセージまでの会話履歴パスを取得"""
-        selected_node = self.pick_message_from_uuid(self.root_node, target_message)
+        selected_node = self.get_message_node_by_uuid(target_message.uuid)
         path = [node.message for node in selected_node.path]
         return path
-    
+
     def can_add_message_to(self, parent_message: MessageEntity) -> bool:
         """指定の親にメッセージを追加可能かチェック"""
         try:
-            self.pick_message_from_uuid(self.root_node, parent_message)
+            self.get_message_node_by_uuid(parent_message.uuid)
             return True
         except ValueError:
             return False
