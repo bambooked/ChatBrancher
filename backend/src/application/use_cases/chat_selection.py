@@ -18,10 +18,11 @@ class ChatSelection:
         message_list = await self.chat_repository.get_chat_tree_messages(chat_uuid, self.user)
         if not message_list:
             raise ValueError(f"Chat tree with ID {chat_uuid} not found")
-        
+
         # メッセージリストからチャットツリーを復元
         self.chat_tree = ChatTreeEntity.restore_from_message_list(message_list)
         self.chat_tree.uuid = UUID(chat_uuid)
+        self.chat_tree.owner_uuid = self.user.uuid
         return self.chat_tree
     
     async def get_chat_tree(self, chat_uuid: str) -> ChatTreeEntity:
@@ -32,9 +33,12 @@ class ChatSelection:
             )
         if not message_list:
             raise ValueError(f"Chat tree with ID {chat_uuid} not found")
-        
+
         # 新しいインスタンスとして復元して返す
-        return ChatTreeEntity.restore_from_message_list(message_list)
+        chat_tree = ChatTreeEntity.restore_from_message_list(message_list)
+        chat_tree.uuid = UUID(chat_uuid)
+        chat_tree.owner_uuid = self.user.uuid
+        return chat_tree
 
 
     async def get_all_chat_uuid(self) -> list[str]:
