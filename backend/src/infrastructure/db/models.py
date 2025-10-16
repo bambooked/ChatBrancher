@@ -3,9 +3,24 @@ from tortoise import fields
 from domain.entities.message_entity import Role
 
 
+class UserModel(Model):
+    """ユーザー情報を保持する"""
+
+    uuid = fields.UUIDField(pk=True)
+    username = fields.CharField(max_length=50, unique=True)
+    email = fields.CharField(max_length=255, unique=True)
+    password_hash = fields.CharField(max_length=255)
+    is_active = fields.BooleanField(default=True)
+    created_at = fields.DatetimeField(auto_now_add=True)
+
+    class Meta(Model.Meta):  # 型チェッカー対策
+        table = "users"
+
+
 class ChatTreeDetail(Model):
     "チャットの詳細を保持する"
     uuid = fields.UUIDField(pk=True)
+    owner_uuid = fields.UUIDField()
     created = fields.DatetimeField(auto_now_add=True)
     updated = fields.DatetimeField(auto_now=True)
 
