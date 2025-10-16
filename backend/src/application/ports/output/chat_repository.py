@@ -41,4 +41,8 @@ class ChatRepositoryProtcol(ABC):
         ) -> list[str]:
         "指定したユーザーに紐づく全てのチャットツリーIDを取得"
         pass
-    
+
+    @abstractmethod
+    async def get_chat_tree_info(self, chat_uuid: str) -> dict | None:
+        """チャットツリーのメタ情報（owner_uuid含む）を取得"""
+        pass

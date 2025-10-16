@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from application.ports.output.chat_repository import ChatRepositoryProtcol
 from domain.entities.message_entity import MessageEntity
 from domain.entities.chat_tree_entity import ChatTreeEntity
@@ -11,9 +13,12 @@ class ChatRepositoryImpl(ChatRepositoryProtcol):
 
     async def ensure_chat_tree_detail(self, chat_tree: ChatTreeEntity) -> ChatTreeDetail:
         """
-        ChatTreeEntityに対応するChatTreeDetailがなければ作成する
+        ChatTreeEntityに対応するChatTreeDetailがなければ作成する（owner_uuid含む）
         """
-        chat_tree_detail, created = await ChatTreeDetail.get_or_create(uuid=chat_tree.uuid)
+
+        chat_tree_detail, created = await ChatTreeDetail.get_or_create(
+            uuid=chat_tree.uuid, defaults={"owner_uuid": UUID(chat_tree.owner_uuid)}
+        )
         return chat_tree_detail
 
     
@@ -131,3 +136,16 @@ class ChatRepositoryImpl(ChatRepositoryProtcol):
         chat_tree_ids = list(set([str(msg.chat_tree.uuid) for msg in messages]))
 
         return chat_tree_ids
+
+    async def get_chat_tree_info(self, chat_uuid: str) -> dict | None:
+        """チャットツリーのメタ情報（owner_uuid含む）を取得"""
+        try:
+            chat_tree_detail = await ChatTreeDetail.get(uuid=UUID(chat_uuid))
+            return {
+                "uuid": str(chat_tree_detail.uuid),
+                "owner_uuid": str(chat_tree_detail.owner_uuid),
+                "created": chat_tree_detail.created,
+                "updated": chat_tree_detail.updated,
+            }
+        except Exception:
+            return None

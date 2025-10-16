@@ -32,15 +32,21 @@ class ChatInteraction:
             llm_model: str
             ) -> MessageEntity:
         """
-        ユーザーメッセージ送信とLLM応答を一括処理（メイン機能）
-        
+        ユーザーメッセージ送信とLLM応答を一括処理（アクセス制御付き）
+
         Args:
             content: メッセージ内容
             parent_message_uuid: 親メッセージのUUID
-            
+
         Returns:
             MessageEntity: 生成されたアシスタントメッセージ
         """
+        # アクセス制御チェック
+        if self.chat_tree.owner_uuid != self.user.uuid:
+            raise ValueError(
+                f"Access denied: user {self.user.uuid} does not own chat {self.chat_tree.uuid}"
+            )
+
         if not self._can_add_message_to(parent_message):
             raise ValueError(f"Cannot add message to parent {parent_message.uuid}")
         
