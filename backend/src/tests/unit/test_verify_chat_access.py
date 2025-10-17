@@ -1,10 +1,10 @@
 """VerifyChatAccessユースケースのユニットテスト"""
 import pytest
 from unittest.mock import AsyncMock, MagicMock
-from domain.entities.chat_tree_entity import ChatTreeEntity
-from domain.entities.user_entity import UserEntity
-from domain.entities.message_entity import MessageEntity, Role
-from application.use_cases.verify_chat_access import VerifyChatAccess, AccessDeniedError
+from src.domain.entities.chat_tree_entity import ChatTreeEntity
+from src.domain.entities.user_entity import UserEntity
+from src.domain.entities.message_entity import MessageEntity, Role
+from src.application.use_cases.verify_chat_access import VerifyChatAccess, AccessDeniedError
 
 
 class TestVerifyChatAccess:

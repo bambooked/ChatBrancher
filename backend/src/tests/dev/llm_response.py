@@ -1,12 +1,12 @@
-from interface_adapters.gateways.llm_api_adapter import LLMAdapter
-from infrastructure.openrouter_client import OpenRouterClient
+from src.interface_adapters.gateways.llm_api_adapter import LLMAdapter
+from src.infrastructure.openrouter_client import OpenRouterClient
 
 from dotenv import load_dotenv
 load_dotenv()
 
 from os import getenv
 
-from domain.entities.message_entity import MessageEntity
+from src.domain.entities.message_entity import MessageEntity
 client = OpenRouterClient(getenv("OPENROUTER_API_KEY"))
 adapter = LLMAdapter(client)
 # テスト用のhistoryを作成
@@ -20,7 +20,7 @@ history = [
 import asyncio
 
 # デバッグ用：historyが正しく変換されるかチェック
-from interface_adapters.presenters.format_llm_input import trasnport_message_entity
+from src.interface_adapters.presenters.format_llm_input import trasnport_message_entity
 converted_history = trasnport_message_entity(history)
 
 # asyncio.run()を使用してasync関数を実行

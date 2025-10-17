@@ -36,7 +36,7 @@ fix = true
 addopts = "-ra"
 testpaths = ["src/tests"]
 python_files = "test_*.py"
-pythonpath = ["src"]
+pythonpath = ["."]
 
 [tool.aerich]
 tortoise_orm = "src.infrastructure.db.config.TORTOISE_ORM"

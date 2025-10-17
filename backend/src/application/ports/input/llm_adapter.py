@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from domain.entities.message_entity import MessageEntity
+from src.domain.entities.message_entity import MessageEntity
 
 class LLMCAdapterProtcol(ABC):
     @abstractmethod

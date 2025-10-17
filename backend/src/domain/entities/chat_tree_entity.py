@@ -4,8 +4,8 @@ import uuid
 from anytree import find, NodeMixin
 from anytree.importer import DictImporter
 
-from domain.entities.message_entity import MessageEntity
-from domain.services.tree_reconstruction import (
+from src.domain.entities.message_entity import MessageEntity
+from src.domain.services.tree_reconstruction import (
     convert_parent_uuid_to_children_format,
     convert_anytree_to_message_node
 )

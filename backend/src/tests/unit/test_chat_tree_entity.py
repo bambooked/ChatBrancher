@@ -1,8 +1,8 @@
 """ChatTreeEntityのユニットテスト"""
 import pytest
 import uuid
-from domain.entities.chat_tree_entity import ChatTreeEntity
-from domain.entities.message_entity import MessageEntity, Role
+from src.domain.entities.chat_tree_entity import ChatTreeEntity
+from src.domain.entities.message_entity import MessageEntity, Role
 
 
 class TestChatTreeEntityOwnership:

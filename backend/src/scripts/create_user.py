@@ -3,9 +3,9 @@ import sys
 import getpass
 from uuid import uuid4
 from tortoise import Tortoise
-from infrastructure.db.config import TORTOISE_ORM
-from infrastructure.db.models import UserModel
-from infrastructure.security.password import PasswordHasher
+from src.infrastructure.db.config import TORTOISE_ORM
+from src.infrastructure.db.models import UserModel
+from src.infrastructure.security.password import PasswordHasher
 
 
 async def init_db():

@@ -1,10 +1,10 @@
 from uuid import UUID
 
-from application.ports.output.chat_repository import ChatRepositoryProtcol
-from domain.entities.message_entity import MessageEntity
-from domain.entities.chat_tree_entity import ChatTreeEntity
-from domain.entities.user_entity import UserEntity
-from infrastructure.db.models import MessageModel, AssistantMessageDetail, ChatTreeDetail
+from src.application.ports.output.chat_repository import ChatRepositoryProtcol
+from src.domain.entities.message_entity import MessageEntity
+from src.domain.entities.chat_tree_entity import ChatTreeEntity
+from src.domain.entities.user_entity import UserEntity
+from src.infrastructure.db.models import MessageModel, AssistantMessageDetail, ChatTreeDetail
 
 
 class ChatRepositoryImpl(ChatRepositoryProtcol):
@@ -37,7 +37,7 @@ class ChatRepositoryImpl(ChatRepositoryProtcol):
         if chat_tree.root_node is not None:
             try:
                 # message_entity自身をツリーから検索
-                message_node = chat_tree.pick_message_from_uuid(chat_tree.root_node, message_entity)
+                message_node = chat_tree.get_message_node_by_uuid(message_entity.uuid)
 
                 # その親ノードを取得（重要：.parentでアクセス）
                 if message_node.parent is not None:

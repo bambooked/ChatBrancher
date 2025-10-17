@@ -1,8 +1,8 @@
 from uuid import UUID
 
-from domain.entities.chat_tree_entity import ChatTreeEntity
-from domain.entities.user_entity import UserEntity
-from application.ports.output.chat_repository import ChatRepositoryProtcol
+from src.domain.entities.chat_tree_entity import ChatTreeEntity
+from src.domain.entities.user_entity import UserEntity
+from src.application.ports.output.chat_repository import ChatRepositoryProtcol
 
 class ChatSelection:
     def __init__(
