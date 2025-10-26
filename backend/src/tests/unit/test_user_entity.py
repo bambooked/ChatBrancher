@@ -1,5 +1,4 @@
 """UserEntityのユニットテスト"""
-import pytest
 from src.domain.entities.user_entity import UserEntity
 
 

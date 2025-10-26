@@ -18,9 +18,10 @@ from dotenv import load_dotenv
 from os import getenv
 load_dotenv()
 
-async def start_chat(interaction_handler: ChatInteraction) -> None:
+async def start_chat(interaction_handler: ChatInteraction, chat_uuid: uuid.UUID) -> None:
     await interaction_handler.start_chat(
-        initial_message="あなたは優秀なアシスタントです。userは日本語の回答を期待しています。"
+        initial_message="あなたは優秀なアシスタントです。userは日本語の回答を期待しています。",
+        chat_uuid=chat_uuid,
         )
     #print(interaction_handler.chat_tree.root_node.message.content)
 
@@ -89,7 +90,8 @@ async def main():
             chat_tree,
             current_user
             )
-        await start_chat(interaction_handler)
+        initial_chat_uuid = uuid.uuid4()
+        await start_chat(interaction_handler, initial_chat_uuid)
         await continue_chat(interaction_handler, "こんにちは")
         await branch_chat(selector, interaction_handler)
         chat_tree = await restart_chat(selector)
