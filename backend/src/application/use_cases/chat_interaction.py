@@ -21,10 +21,14 @@ class ChatInteraction:
         self.chat_tree = chat_tree
         self.user= current_user
 
-    async def start_chat(self, initial_message: str) -> None:
+    async def start_chat(self, initial_message: str, *, chat_uuid: UUID | str) -> None:
         """チャットを開始し、初期システムメッセージでツリーを初期化"""
         initial_message_entity = await self.message_handler.create_initial_message(initial_message)
-        self.chat_tree.new_chat(initial_message_entity, owner_uuid=self.user.uuid)
+        self.chat_tree.new_chat(
+            initial_message_entity,
+            owner_uuid=self.user.uuid,
+            chat_uuid=chat_uuid,
+        )
         await self.chat_repository.save_message(initial_message_entity, self.chat_tree, self.user)
 
     async def send_message_and_get_response(

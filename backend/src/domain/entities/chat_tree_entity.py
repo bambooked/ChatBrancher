@@ -1,5 +1,5 @@
 from typing import Any, Optional
-import uuid
+from uuid import UUID
 
 from anytree import find, NodeMixin
 from anytree.importer import DictImporter
@@ -22,25 +22,31 @@ class ChatTreeEntity:
     チャットの会話ツリーを管理するドメインエンティティ
     """
     def __init__(self) -> None:
-        self.uuid: Optional[uuid.UUID] = None
+        self.uuid: Optional[UUID] = None
         self.root_node: Optional[MessageNode] = None
         self.owner_uuid: Optional[str] = None
 
-    def new_chat(self, initial_message: MessageEntity, owner_uuid: str) -> None:
-        self.root_node = MessageNode(parent=None, message = initial_message)
-        self.uuid = uuid.uuid4()
+    def new_chat(
+        self,
+        initial_message: MessageEntity,
+        *,
+        owner_uuid: str,
+        chat_uuid: UUID | str,
+    ) -> None:
+        self.root_node = MessageNode(parent=None, message=initial_message)
+        self.uuid = UUID(str(chat_uuid))
         self.owner_uuid = owner_uuid
 
     def revert_chat(self, chat_uuid: str, messages: list[dict[str, Any]], owner_uuid: str) -> None:
         self.restore_from_message_list(messages)
-        self.uuid = chat_uuid
+        self.uuid = UUID(str(chat_uuid))
         self.owner_uuid = owner_uuid
 
     def is_owned_by(self, user_uuid: str) -> bool:
         """指定されたユーザーがこのチャットの所有者かどうかを判定"""
         return self.owner_uuid == user_uuid
 
-    def get_message_node_by_uuid(self, message_uuid: str | uuid.UUID) -> MessageNode:
+    def get_message_node_by_uuid(self, message_uuid: str | UUID) -> MessageNode:
         """UUID からメッセージノードを取得"""
         if self.root_node is None:
             raise ValueError("Chat tree is empty")
@@ -51,7 +57,7 @@ class ChatTreeEntity:
             raise ValueError(f"Message with UUID {target_uuid} not found")
         return found
 
-    def get_message_by_uuid(self, message_uuid: str | uuid.UUID) -> MessageEntity:
+    def get_message_by_uuid(self, message_uuid: str | UUID) -> MessageEntity:
         """UUID から MessageEntity を取得"""
         return self.get_message_node_by_uuid(message_uuid).message
 
