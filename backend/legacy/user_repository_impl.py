@@ -1,7 +1,7 @@
 from uuid import UUID
-from domain.entities.user_entity import UserEntity
-from application.ports.output.user_repository import UserRepositoryProtocol
-from infrastructure.db.models import UserModel
+from src.domain.entities.user_entity import UserEntity
+from src.application.ports.output.user_repository import UserRepositoryProtocol
+from src.infrastructure.db.models import UserModel
 
 
 class UserRepositoryImpl(UserRepositoryProtocol):

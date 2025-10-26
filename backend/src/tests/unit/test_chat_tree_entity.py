@@ -1,8 +1,8 @@
 """ChatTreeEntityのユニットテスト"""
 import pytest
 import uuid
-from domain.entities.chat_tree_entity import ChatTreeEntity
-from domain.entities.message_entity import MessageEntity, Role
+from src.domain.entities.chat_tree_entity import ChatTreeEntity
+from src.domain.entities.message_entity import MessageEntity, Role
 
 
 class TestChatTreeEntityOwnership:
@@ -18,13 +18,18 @@ class TestChatTreeEntityOwnership:
             role=Role.SYSTEM,
             content="Hello"
         )
+        chat_uuid = uuid.uuid4()
 
         # Act
-        tree.new_chat(initial_message, owner_uuid=owner_uuid)
+        tree.new_chat(
+            initial_message,
+            owner_uuid=owner_uuid,
+            chat_uuid=chat_uuid,
+        )
 
         # Assert
         assert tree.owner_uuid == owner_uuid
-        assert tree.uuid is not None
+        assert tree.uuid == chat_uuid
         assert tree.root_node is not None
 
     def test_new_chat_without_owner_raises_error(self):
@@ -36,10 +41,11 @@ class TestChatTreeEntityOwnership:
             role=Role.SYSTEM,
             content="Hello"
         )
+        chat_uuid = uuid.uuid4()
 
         # Act & Assert
         with pytest.raises(TypeError):
-            tree.new_chat(initial_message)
+            tree.new_chat(initial_message, chat_uuid=chat_uuid)
 
     def test_revert_chat_with_owner(self):
         """owner_uuidを含めてチャットを復元できる"""
@@ -73,7 +79,11 @@ class TestChatTreeEntityOwnership:
             role=Role.SYSTEM,
             content="Hello"
         )
-        tree.new_chat(initial_message, owner_uuid=owner_uuid)
+        tree.new_chat(
+            initial_message,
+            owner_uuid=owner_uuid,
+            chat_uuid=uuid.uuid4(),
+        )
 
         # Act & Assert
         assert tree.is_owned_by(owner_uuid) is True

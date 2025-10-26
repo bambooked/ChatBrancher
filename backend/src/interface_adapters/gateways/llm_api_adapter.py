@@ -1,8 +1,8 @@
-from infrastructure.openrouter_client import OpenRouterClient
-from application.ports.input.llm_adapter import LLMCAdapterProtcol
-from domain.entities.message_entity import MessageEntity
-from interface_adapters.presenters.format_llm_input import trasnport_message_entity
-from interface_adapters.presenters.format_lllm_output import flat_api_response
+from src.infrastructure.openrouter_client import OpenRouterClient
+from src.application.ports.input.llm_adapter import LLMCAdapterProtcol
+from src.domain.entities.message_entity import MessageEntity
+from src.interface_adapters.presenters.format_llm_input import trasnport_message_entity
+from src.interface_adapters.presenters.format_llm_output import flat_api_response
 
 class LLMAdapter(LLMCAdapterProtcol):
     def __init__(self, llm_client: OpenRouterClient) -> None:

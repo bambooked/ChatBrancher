@@ -1,7 +1,7 @@
 """チャットアクセス権限検証ユースケース"""
 
-from domain.entities.user_entity import UserEntity
-from domain.entities.chat_tree_entity import ChatTreeEntity
+from src.domain.entities.user_entity import UserEntity
+from src.domain.entities.chat_tree_entity import ChatTreeEntity
 
 
 class AccessDeniedError(Exception):

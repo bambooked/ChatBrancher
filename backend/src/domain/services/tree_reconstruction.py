@@ -4,7 +4,7 @@
 from typing import Dict, List, Optional, Any
 from anytree import AnyNode
 
-from domain.entities.message_entity import MessageEntity, Role
+from src.domain.entities.message_entity import MessageEntity, Role
 # MessageNodeは循環インポートを避けるため、必要に応じて関数内でインポート
 
 
@@ -78,7 +78,7 @@ def convert_anytree_to_message_node(anytree_node: AnyNode):
         変換されたMessageNode
     """
     # 循環インポートを避けるためにここでインポート
-    from domain.entities.chat_tree_entity import MessageNode
+    from src.domain.entities.chat_tree_entity import MessageNode
     
     # MessageEntityを作成
     message_entity = MessageEntity(

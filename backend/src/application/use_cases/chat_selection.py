@@ -1,8 +1,8 @@
 from uuid import UUID
 
-from domain.entities.chat_tree_entity import ChatTreeEntity
-from domain.entities.user_entity import UserEntity
-from application.ports.output.chat_repository import ChatRepositoryProtcol
+from src.domain.entities.chat_tree_entity import ChatTreeEntity
+from src.domain.entities.user_entity import UserEntity
+from src.application.ports.output.chat_repository import ChatRepositoryProtcol
 
 class ChatSelection:
     def __init__(
@@ -14,14 +14,14 @@ class ChatSelection:
         self.user = current_user
 
     async def restart_chat(self, chat_uuid: str) -> ChatTreeEntity:
-        """チャットを再開する（アクセス制御付き）"""
+        """チャットを再開する"""
         # 1. チャット情報をDBから取得
         chat_info = await self.chat_repository.get_chat_tree_info(chat_uuid)
         if not chat_info:
             raise ValueError(f"Chat tree with ID {chat_uuid} not found")
 
         # 2. アクセス制御チェック
-        if chat_info["owner_uuid"] != self.user.uuid:
+        if chat_info["owner_uuid"] != str(self.user.uuid):
             raise ValueError(
                 f"Access denied: user {self.user.uuid} does not own chat {chat_uuid}"
             )
@@ -32,18 +32,18 @@ class ChatSelection:
         # 4. ツリー復元（DBから取得した正しいowner_uuidで）
         self.chat_tree = ChatTreeEntity.restore_from_message_list(message_list)
         self.chat_tree.uuid = UUID(chat_uuid)
-        self.chat_tree.owner_uuid = chat_info["owner_uuid"]  # 修正：DBから取得
+        self.chat_tree.owner_uuid = chat_info["owner_uuid"]  # 修正:DBから取得
         return self.chat_tree
     
     async def get_chat_tree(self, chat_uuid: str) -> ChatTreeEntity:
-        """指定されたチャットツリーを取得（アクセス制御付き、現在のインスタンスを変更せずに返す）"""
+        """指定されたチャットツリーを取得"""
         # 1. チャット情報をDBから取得
         chat_info = await self.chat_repository.get_chat_tree_info(chat_uuid)
         if not chat_info:
             raise ValueError(f"Chat tree with ID {chat_uuid} not found")
 
         # 2. アクセス制御チェック
-        if chat_info["owner_uuid"] != self.user.uuid:
+        if chat_info["owner_uuid"] != str(self.user.uuid):
             raise ValueError(
                 f"Access denied: user {self.user.uuid} does not own chat {chat_uuid}"
             )

@@ -1,8 +1,10 @@
-from domain.entities.chat_tree_entity import ChatTreeEntity
-from domain.entities.message_entity import MessageEntity
-from domain.entities.user_entity import UserEntity
-from application.use_cases.services.message_handler import MessageHandler
-from application.ports.output.chat_repository import ChatRepositoryProtcol
+from uuid import UUID
+
+from src.domain.entities.chat_tree_entity import ChatTreeEntity
+from src.domain.entities.message_entity import MessageEntity
+from src.domain.entities.user_entity import UserEntity
+from src.application.use_cases.services.message_handler import MessageHandler
+from src.application.ports.output.chat_repository import ChatRepositoryProtcol
 
 
 class ChatInteraction:
@@ -19,16 +21,20 @@ class ChatInteraction:
         self.chat_tree = chat_tree
         self.user= current_user
 
-    async def start_chat(self, initial_message: str) -> None:
+    async def start_chat(self, initial_message: str, *, chat_uuid: UUID | str) -> None:
         """チャットを開始し、初期システムメッセージでツリーを初期化"""
         initial_message_entity = await self.message_handler.create_initial_message(initial_message)
-        self.chat_tree.new_chat(initial_message_entity, owner_uuid=self.user.uuid)
+        self.chat_tree.new_chat(
+            initial_message_entity,
+            owner_uuid=self.user.uuid,
+            chat_uuid=chat_uuid,
+        )
         await self.chat_repository.save_message(initial_message_entity, self.chat_tree, self.user)
 
     async def send_message_and_get_response(
             self,
             content: str,
-            parent_message: MessageEntity,
+            parent_message_uuid: str | UUID | None,
             llm_model: str
             ) -> MessageEntity:
         """
@@ -36,7 +42,7 @@ class ChatInteraction:
 
         Args:
             content: メッセージ内容
-            parent_message_uuid: 親メッセージのUUID
+            parent_message_uuid: 親メッセージのUUID（未指定の場合はルートメッセージ）
 
         Returns:
             MessageEntity: 生成されたアシスタントメッセージ
@@ -46,6 +52,8 @@ class ChatInteraction:
             raise ValueError(
                 f"Access denied: user {self.user.uuid} does not own chat {self.chat_tree.uuid}"
             )
+
+        parent_message = self._resolve_parent_message(parent_message_uuid)
 
         if not self._can_add_message_to(parent_message):
             raise ValueError(f"Cannot add message to parent {parent_message.uuid}")
@@ -63,11 +71,19 @@ class ChatInteraction:
         # LLM応答生成
         return llm_responce
     
+    def _resolve_parent_message(self, parent_message_uuid: str | UUID | None) -> MessageEntity:
+        """UUID から親メッセージを解決。未指定の場合はルートを返す"""
+        if parent_message_uuid is None:
+            if self.chat_tree.root_node is None:
+                raise ValueError("Chat tree has no root message")
+            return self.chat_tree.root_node.message
+
+        return self.chat_tree.get_message_by_uuid(parent_message_uuid)
+
     def _can_add_message_to(self, parent_message: MessageEntity) -> bool:
         """指定の親にメッセージを追加可能かチェック"""
-        if self.chat_tree is None:
+        if self.chat_tree is None or self.chat_tree.root_node is None:
             return False
-        elif not self.chat_tree.root_node.children:#chat開始時
+        if parent_message.uuid == self.chat_tree.root_node.message.uuid:
             return True
-        else:
-            return self.chat_tree.can_add_message_to(parent_message)
+        return self.chat_tree.can_add_message_to(parent_message)
