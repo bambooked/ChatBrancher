@@ -75,6 +75,9 @@ describe('buildTreeFromMessages', () => {
 		];
 
 		const tree = buildTreeFromMessages(messages);
+		if (!tree) {
+			throw new Error('Expected root node to be constructed');
+		}
 
 		expect(tree.children).toHaveLength(2);
 		expect(tree.children[0].uuid).toBe('msg-2');
