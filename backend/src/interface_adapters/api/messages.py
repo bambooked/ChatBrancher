@@ -1,4 +1,5 @@
 from uuid import UUID
+from functools import lru_cache
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from src.infrastructure.db.models import UserModel, ChatTreeDetail
@@ -8,11 +9,26 @@ from src.application.use_cases.chat_interaction import ChatInteraction
 from src.interface_adapters.gateways.chat_repository import ChatRepositoryImpl
 from src.application.use_cases.services.message_handler import MessageHandler
 from src.domain.entities.user_entity import UserEntity
+from src.domain.entities.chat_tree_entity import ChatTreeEntity
 from src.interface_adapters.gateways.llm_api_adapter import LLMAdapter
 from src.infrastructure.openrouter_client import OpenRouterClient
 from src.infrastructure.config import settings
 
 router = APIRouter(prefix="/api/v1/chats", tags=["messages"])
+
+
+# 依存性注入: シングルトンとして管理
+@lru_cache()
+def get_chat_repository() -> ChatRepositoryImpl:
+    """チャットリポジトリのシングルトンインスタンスを取得"""
+    return ChatRepositoryImpl()
+
+
+@lru_cache()
+def get_llm_adapter() -> LLMAdapter:
+    """LLMアダプターのシングルトンインスタンスを取得"""
+    llm_client = OpenRouterClient(api_key=settings.OPENROUTER_API_KEY)
+    return LLMAdapter(llm_client=llm_client)
 
 
 class SendMessageRequest(BaseModel):
@@ -44,6 +60,8 @@ async def send_message(
     chat_uuid: UUID,
     request: SendMessageRequest,
     current_user: UserModel = Depends(get_current_user),
+    chat_repository: ChatRepositoryImpl = Depends(get_chat_repository),
+    llm_adapter: LLMAdapter = Depends(get_llm_adapter),
 ):
     # --- チャットの存在・権限チェック ---
     chat = await ChatTreeDetail.filter(uuid=chat_uuid).first()
@@ -60,10 +78,7 @@ async def send_message(
         email=current_user.email,
     )
 
-    # --- 共通インスタンスを一貫して構築 ---
-    chat_repository = ChatRepositoryImpl()
-    llm_client = OpenRouterClient(api_key=settings.OPENROUTER_API_KEY)
-    llm_adapter = LLMAdapter(llm_client=llm_client)
+    # --- MessageHandlerとChatSelectionを構築 ---
     message_handler = MessageHandler(
         repo=chat_repository,
         llm_client=llm_adapter,
@@ -71,9 +86,8 @@ async def send_message(
     )
     chat_selection = ChatSelection(chat_repository, user_entity)
 
-    # --- 既存チャットツリーを取得 ---
     chat_tree = await chat_selection.get_chat_tree(str(chat_uuid))
-
+        
     # --- ChatInteraction の構築 ---
     chat_interaction = ChatInteraction(
         message_handler=message_handler,

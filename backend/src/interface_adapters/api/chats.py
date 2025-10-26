@@ -1,10 +1,33 @@
 from uuid import uuid4, UUID
+from functools import lru_cache
 from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel
 from src.infrastructure.db.models import UserModel, ChatTreeDetail, MessageModel
 from src.interface_adapters.api.auth import get_current_user
+from src.application.use_cases.chat_interaction import ChatInteraction
+from src.application.use_cases.services.message_handler import MessageHandler
+from src.interface_adapters.gateways.chat_repository import ChatRepositoryImpl
+from src.interface_adapters.gateways.llm_api_adapter import LLMAdapter
+from src.infrastructure.openrouter_client import OpenRouterClient
+from src.infrastructure.config import settings
+from src.domain.entities.chat_tree_entity import ChatTreeEntity
+from src.domain.entities.user_entity import UserEntity
 
 router = APIRouter(prefix="/api/v1/chats", tags=["chats"])
+
+
+# 依存性注入: シングルトンとして管理
+@lru_cache()
+def get_chat_repository() -> ChatRepositoryImpl:
+    """チャットリポジトリのシングルトンインスタンスを取得"""
+    return ChatRepositoryImpl()
+
+
+@lru_cache()
+def get_llm_adapter() -> LLMAdapter:
+    """LLMアダプターのシングルトンインスタンスを取得"""
+    llm_client = OpenRouterClient(api_key=settings.OPENROUTER_API_KEY)
+    return LLMAdapter(llm_client=llm_client)
 
 
 class ChatResponse(BaseModel):
@@ -38,18 +61,52 @@ class ChatTreeResponse(BaseModel):
 
 
 @router.post("", response_model=ChatResponse, status_code=status.HTTP_201_CREATED)
-async def create_chat(current_user: UserModel = Depends(get_current_user)):
+async def create_chat(
+    current_user: UserModel = Depends(get_current_user),
+    chat_repository: ChatRepositoryImpl = Depends(get_chat_repository),
+    llm_adapter: LLMAdapter = Depends(get_llm_adapter),
+):
     """
     新しいチャットを作成
 
     Args:
         current_user: 認証済みユーザー（依存注入）
+        chat_repository: チャットリポジトリ（依存注入）
+        llm_adapter: LLMアダプター（依存注入）
 
     Returns:
         ChatResponse: 作成されたチャット情報
     """
     chat_uuid = uuid4()
-    chat = await ChatTreeDetail.create(uuid=chat_uuid, owner_uuid=current_user.uuid)
+
+    # UserEntityを構築
+    user_entity = UserEntity(
+        uuid=str(current_user.uuid),
+        username=current_user.username,
+        email=current_user.email,
+    )
+
+    # MessageHandlerを構築
+    message_handler = MessageHandler(
+        repo=chat_repository,
+        llm_client=llm_adapter,
+        current_user=user_entity,
+    )
+    chat_tree = ChatTreeEntity()
+
+    # ChatInteractionを構築してstart_chatを実行
+    chat_interaction = ChatInteraction(
+        message_handler=message_handler,
+        chat_repository=chat_repository,
+        chat_tree=chat_tree,
+        current_user=user_entity,
+    )
+
+    # 空の初期メッセージでチャットを開始
+    await chat_interaction.start_chat(initial_message="", chat_uuid=chat_uuid)
+
+    # ChatTreeDetailを取得（start_chat内で作成されている）
+    chat = await ChatTreeDetail.get(uuid=chat_uuid)
 
     return ChatResponse(
         uuid=str(chat.uuid),
