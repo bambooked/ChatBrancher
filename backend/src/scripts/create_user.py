@@ -95,11 +95,11 @@ async def main():
 
             try:
                 user_uuid = await create_user(username, email, password)
-                print(f"\n✅ User created successfully!")
+                print("\n✅ User created successfully!")
                 print(f"UUID: {user_uuid}")
                 print(f"Username: {username}")
                 print(f"Email: {email}")
-                print(f"\n📋 Please provide the username and password to the user for login.")
+                print("\n📋 Please provide the username and password to the user for login.")
             except ValueError as e:
                 print(f"\n❌ Error: {e}")
                 sys.exit(1)
@@ -111,7 +111,9 @@ async def main():
             print(f"Unknown command: {command}")
             sys.exit(1)
     finally:
-        await Tortoise.close_connections()
+        # DB接続が初期化されている場合のみクローズ
+        if Tortoise._inited:
+            await Tortoise.close_connections()
 
 
 if __name__ == "__main__":
