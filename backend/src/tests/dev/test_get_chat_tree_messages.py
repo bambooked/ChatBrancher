@@ -1,18 +1,19 @@
 import asyncio
 import uuid
 from tortoise import Tortoise
-from application.use_cases.chat_interaction import ChatInteraction
-from application.use_cases.services.message_handler import MessageHandler
-from application.use_cases.chat_selection import ChatSelection
-from interface_adapters.gateways.chat_repository import ChatRepositoryImpl
-from infrastructure.openrouter_client import OpenRouterClient
-from domain.entities.chat_tree_entity import ChatTreeEntity
-from domain.entities.user_entity import UserEntity
-from interface_adapters.gateways.llm_api_adapter import LLMAdapter
-from infrastructure.db.config import TORTOISE_ORM
-from infrastructure.db.models import MessageModel, ChatTreeDetail, AssistantMessageDetail, UserModel
+from src.application.use_cases.chat_interaction import ChatInteraction
+from src.application.use_cases.services.message_handler import MessageHandler
+from src.application.use_cases.chat_selection import ChatSelection
+from src.interface_adapters.gateways.chat_repository import ChatRepositoryImpl
+from src.infrastructure.openrouter_client import OpenRouterClient
+from src.domain.entities.chat_tree_entity import ChatTreeEntity
+from src.domain.entities.user_entity import UserEntity
+from src.interface_adapters.gateways.llm_api_adapter import LLMAdapter
+from src.infrastructure.db.config import TORTOISE_ORM
+from src.infrastructure.db.models import MessageModel, ChatTreeDetail, AssistantMessageDetail, UserModel
 
 from dotenv import load_dotenv
+import pytest
 
 load_dotenv()
 
@@ -33,6 +34,7 @@ async def cleanup_db():
     print("✅ クリーンアップ完了")
 
 
+@pytest.mark.asyncio
 async def test_get_chat_tree_messages():
     """get_chat_tree_messagesメソッドのテスト"""
     try:
@@ -75,7 +77,11 @@ async def test_get_chat_tree_messages():
 
         # Step 1: チャットを開始
         print("\n📝 Step 1: チャットを開始")
-        await handler.start_chat("あなたは親切なAIアシスタントです。")
+        chat_uuid = uuid.uuid4()
+        await handler.start_chat(
+            "あなたは親切なAIアシスタントです。",
+            chat_uuid=chat_uuid,
+        )
         print(f"✅ チャットツリーUUID: {tree.uuid}")
         tree_uuid = str(tree.uuid)
 
@@ -106,7 +112,7 @@ async def test_get_chat_tree_messages():
         chat_selection = ChatSelection(repo, user)
         restored_tree = await chat_selection.get_chat_tree(tree_uuid)
 
-        print(f"✅ ツリーを復元しました")
+        print("✅ ツリーを復元しました")
         print(f"✅ 復元されたツリーUUID: {restored_tree.uuid}")
 
         # Step 5: 復元されたツリーの構造を確認
@@ -131,7 +137,7 @@ async def test_get_chat_tree_messages():
         restored_uuids = {str(node.message.uuid) for node in restored_nodes}
 
         assert original_uuids == restored_uuids, "ノードのUUIDが一致しません"
-        print(f"✅ 全てのノードUUIDが一致")
+        print("✅ 全てのノードUUIDが一致")
 
         print("\n=== 🎉 テスト成功！get_chat_tree_messagesは正しく動作しています ===\n")
 

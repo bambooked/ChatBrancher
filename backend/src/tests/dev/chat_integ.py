@@ -3,24 +3,25 @@ import uuid
 import random
 from tortoise import Tortoise
 
-from application.use_cases.chat_interaction import ChatInteraction
-from application.use_cases.chat_selection import ChatSelection
-from application.use_cases.services.message_handler import MessageHandler
-from interface_adapters.gateways.chat_repository import ChatRepositoryImpl
-from infrastructure.openrouter_client import OpenRouterClient
-from domain.entities.chat_tree_entity import ChatTreeEntity
-from domain.entities.user_entity import UserEntity
-from interface_adapters.gateways.llm_api_adapter import LLMAdapter
-from infrastructure.db.config import TORTOISE_ORM
-#from infrastructure.db.models import MessageModel, ChatTreeDetail, AssistantMessageDetail
+from src.application.use_cases.chat_interaction import ChatInteraction
+from src.application.use_cases.chat_selection import ChatSelection
+from src.application.use_cases.services.message_handler import MessageHandler
+from src.interface_adapters.gateways.chat_repository import ChatRepositoryImpl
+from src.infrastructure.openrouter_client import OpenRouterClient
+from src.domain.entities.chat_tree_entity import ChatTreeEntity
+from src.domain.entities.user_entity import UserEntity
+from src.interface_adapters.gateways.llm_api_adapter import LLMAdapter
+from src.infrastructure.db.config import TORTOISE_ORM
+#from src.infrastructure.db.models import MessageModel, ChatTreeDetail, AssistantMessageDetail
 
 from dotenv import load_dotenv
 from os import getenv
 load_dotenv()
 
-async def start_chat(interaction_handler: ChatInteraction) -> None:
+async def start_chat(interaction_handler: ChatInteraction, chat_uuid: uuid.UUID) -> None:
     await interaction_handler.start_chat(
-        initial_message="あなたは優秀なアシスタントです。userは日本語の回答を期待しています。"
+        initial_message="あなたは優秀なアシスタントです。userは日本語の回答を期待しています。",
+        chat_uuid=chat_uuid,
         )
     #print(interaction_handler.chat_tree.root_node.message.content)
 
@@ -31,7 +32,7 @@ async def continue_chat(
     parent_message = interaction_handler.chat_tree.root_node.message
     resp = await interaction_handler.send_message_and_get_response(
         content=message,
-        parent_message=parent_message,
+        parent_message_uuid=parent_message.uuid,
         llm_model="anthropic/claude-3-haiku"
     )
     #print(resp)
@@ -55,7 +56,7 @@ async def branch_chat(selector: ChatSelection, interaction_handler: ChatInteract
     # 選択されたメッセージから分岐
     branch_response = await interaction_handler.send_message_and_get_response(
         content="短めに自己紹介してみて！",
-        parent_message=random_message,
+        parent_message_uuid=random_message.uuid,
         llm_model="anthropic/claude-3-haiku"
     )
 
@@ -89,7 +90,8 @@ async def main():
             chat_tree,
             current_user
             )
-        await start_chat(interaction_handler)
+        initial_chat_uuid = uuid.uuid4()
+        await start_chat(interaction_handler, initial_chat_uuid)
         await continue_chat(interaction_handler, "こんにちは")
         await branch_chat(selector, interaction_handler)
         chat_tree = await restart_chat(selector)

@@ -1,10 +1,10 @@
 """VerifyChatAccessユースケースのユニットテスト"""
+import uuid
 import pytest
-from unittest.mock import AsyncMock, MagicMock
-from domain.entities.chat_tree_entity import ChatTreeEntity
-from domain.entities.user_entity import UserEntity
-from domain.entities.message_entity import MessageEntity, Role
-from application.use_cases.verify_chat_access import VerifyChatAccess, AccessDeniedError
+from src.domain.entities.chat_tree_entity import ChatTreeEntity
+from src.domain.entities.user_entity import UserEntity
+from src.domain.entities.message_entity import MessageEntity, Role
+from src.application.use_cases.verify_chat_access import VerifyChatAccess, AccessDeniedError
 
 
 class TestVerifyChatAccess:
@@ -26,7 +26,11 @@ class TestVerifyChatAccess:
             role=Role.SYSTEM,
             content="Hello"
         )
-        chat_tree.new_chat(initial_message, owner_uuid=owner_uuid)
+        chat_tree.new_chat(
+            initial_message,
+            owner_uuid=owner_uuid,
+            chat_uuid=uuid.uuid4(),
+        )
 
         use_case = VerifyChatAccess()
 
@@ -52,7 +56,11 @@ class TestVerifyChatAccess:
             role=Role.SYSTEM,
             content="Hello"
         )
-        chat_tree.new_chat(initial_message, owner_uuid=owner_uuid)
+        chat_tree.new_chat(
+            initial_message,
+            owner_uuid=owner_uuid,
+            chat_uuid=uuid.uuid4(),
+        )
 
         use_case = VerifyChatAccess()
 
@@ -79,7 +87,11 @@ class TestVerifyChatAccess:
             role=Role.SYSTEM,
             content="Hello"
         )
-        chat_tree.new_chat(initial_message, owner_uuid=owner_uuid)
+        chat_tree.new_chat(
+            initial_message,
+            owner_uuid=owner_uuid,
+            chat_uuid=uuid.uuid4(),
+        )
 
         use_case = VerifyChatAccess()
 

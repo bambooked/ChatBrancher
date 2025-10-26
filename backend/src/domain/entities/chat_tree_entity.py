@@ -1,11 +1,11 @@
 from typing import Any, Optional
-import uuid
+from uuid import UUID
 
 from anytree import find, NodeMixin
 from anytree.importer import DictImporter
 
-from domain.entities.message_entity import MessageEntity
-from domain.services.tree_reconstruction import (
+from src.domain.entities.message_entity import MessageEntity
+from src.domain.services.tree_reconstruction import (
     convert_parent_uuid_to_children_format,
     convert_anytree_to_message_node
 )
@@ -22,45 +22,60 @@ class ChatTreeEntity:
     チャットの会話ツリーを管理するドメインエンティティ
     """
     def __init__(self) -> None:
-        self.uuid: Optional[uuid.UUID] = None
+        self.uuid: Optional[UUID] = None
         self.root_node: Optional[MessageNode] = None
         self.owner_uuid: Optional[str] = None
 
-    def new_chat(self, initial_message: MessageEntity, owner_uuid: str) -> None:
-        self.root_node = MessageNode(parent=None, message = initial_message)
-        self.uuid = uuid.uuid4()
+    def new_chat(
+        self,
+        initial_message: MessageEntity,
+        *,
+        owner_uuid: str,
+        chat_uuid: UUID | str,
+    ) -> None:
+        self.root_node = MessageNode(parent=None, message=initial_message)
+        self.uuid = UUID(str(chat_uuid))
         self.owner_uuid = owner_uuid
 
     def revert_chat(self, chat_uuid: str, messages: list[dict[str, Any]], owner_uuid: str) -> None:
         self.restore_from_message_list(messages)
-        self.uuid = chat_uuid
+        self.uuid = UUID(str(chat_uuid))
         self.owner_uuid = owner_uuid
 
     def is_owned_by(self, user_uuid: str) -> bool:
         """指定されたユーザーがこのチャットの所有者かどうかを判定"""
         return self.owner_uuid == user_uuid
 
-    def pick_message_from_uuid(self, root_node: MessageNode, message: MessageEntity) -> MessageNode:
-        found = find(root_node, lambda node :str(node.message.uuid) == str(message.uuid))
+    def get_message_node_by_uuid(self, message_uuid: str | UUID) -> MessageNode:
+        """UUID からメッセージノードを取得"""
+        if self.root_node is None:
+            raise ValueError("Chat tree is empty")
+
+        target_uuid = str(message_uuid)
+        found = find(self.root_node, lambda node: str(node.message.uuid) == target_uuid)
         if not found:
-            raise ValueError("Not Found Node has provided conditon")
+            raise ValueError(f"Message with UUID {target_uuid} not found")
         return found
-    
+
+    def get_message_by_uuid(self, message_uuid: str | UUID) -> MessageEntity:
+        """UUID から MessageEntity を取得"""
+        return self.get_message_node_by_uuid(message_uuid).message
+
     def add_message(self, parent_message: MessageEntity, message: MessageEntity) -> None:
         """メッセージをツリーに追加"""
-        parent_node = self.pick_message_from_uuid(self.root_node, parent_message)
+        parent_node = self.get_message_node_by_uuid(parent_message.uuid)
         MessageNode(parent=parent_node, message = message)
-    
+
     def get_conversation_path(self, target_message: MessageEntity) -> list[MessageEntity]:
         """指定メッセージまでの会話履歴パスを取得"""
-        selected_node = self.pick_message_from_uuid(self.root_node, target_message)
+        selected_node = self.get_message_node_by_uuid(target_message.uuid)
         path = [node.message for node in selected_node.path]
         return path
-    
+
     def can_add_message_to(self, parent_message: MessageEntity) -> bool:
         """指定の親にメッセージを追加可能かチェック"""
         try:
-            self.pick_message_from_uuid(self.root_node, parent_message)
+            self.get_message_node_by_uuid(parent_message.uuid)
             return True
         except ValueError:
             return False

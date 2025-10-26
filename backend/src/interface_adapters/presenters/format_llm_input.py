@@ -1,4 +1,4 @@
-from domain.entities.message_entity import MessageEntity
+from src.domain.entities.message_entity import MessageEntity
 
 def trasnport_message_entity(
         message_entity_list:list[MessageEntity]

@@ -57,7 +57,13 @@
       "Bash(PYTHONPATH=src uv run aerich init:*)",
       "Bash(PYTHONPATH=src uv run:*)",
       "Bash(sqlite3:*)",
-      "Bash(uv sync:*)"
+      "Bash(uv sync:*)",
+      "Bash(for:*)",
+      "Bash(do)",
+      "Bash(done)",
+      "Bash(npx playwright install chromium)",
+      "Bash(npm test)",
+      "Bash(npm run dev:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 
-from domain.entities.message_entity import MessageEntity
-from domain.entities.chat_tree_entity import ChatTreeEntity
-from domain.entities.user_entity import UserEntity
+from src.domain.entities.message_entity import MessageEntity
+from src.domain.entities.chat_tree_entity import ChatTreeEntity
+from src.domain.entities.user_entity import UserEntity
 
 class ChatRepositoryProtcol(ABC):
     @abstractmethod

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from domain.entities.user_entity import UserEntity
+from src.domain.entities.user_entity import UserEntity
 
 
 class UserRepositoryProtocol(ABC):

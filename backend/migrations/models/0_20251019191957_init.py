@@ -5,7 +5,37 @@ RUN_IN_TRANSACTION = True
 
 async def upgrade(db: BaseDBAsyncClient) -> str:
     return """
-        CREATE TABLE IF NOT EXISTS "users" (
+        CREATE TABLE IF NOT EXISTS "chat_tree_detail" (
+    "uuid" CHAR(36) NOT NULL PRIMARY KEY,
+    "owner_uuid" CHAR(36) NOT NULL,
+    "created" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) /* チャットの詳細を保持する */;
+CREATE TABLE IF NOT EXISTS "messages" (
+    "uuid" CHAR(36) NOT NULL PRIMARY KEY,
+    "role" VARCHAR(9) NOT NULL /* USER: user\nASSISTANT: assistant\nSYSTEM: system */,
+    "content" TEXT NOT NULL,
+    "user_context_id" CHAR(36),
+    "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "chat_tree_id" CHAR(36) NOT NULL REFERENCES "chat_tree_detail" ("uuid") ON DELETE CASCADE,
+    "parent_id" CHAR(36) REFERENCES "messages" ("uuid") ON DELETE SET NULL
+) /* メッセージのTortoiseモデル（シンプル版：メモリ上で木構造操作） */;
+CREATE TABLE IF NOT EXISTS "assistant_message_details" (
+    "provider" VARCHAR(100),
+    "model_name" VARCHAR(100),
+    "prompt_tokens" INT NOT NULL DEFAULT 0,
+    "completion_tokens" INT NOT NULL DEFAULT 0,
+    "total_tokens" INT NOT NULL DEFAULT 0,
+    "temperature" REAL,
+    "max_tokens" INT,
+    "finish_reason" VARCHAR(50),
+    "gen_id" VARCHAR(255),
+    "object_" VARCHAR(50),
+    "created_timestamp" VARCHAR(50),
+    "message_id" CHAR(36) NOT NULL PRIMARY KEY REFERENCES "messages" ("uuid") ON DELETE CASCADE
+) /* アシスタントメッセージの詳細情報（LLM関連データ） */;
+CREATE TABLE IF NOT EXISTS "users" (
     "uuid" CHAR(36) NOT NULL PRIMARY KEY,
     "username" VARCHAR(50) NOT NULL UNIQUE,
     "email" VARCHAR(255) NOT NULL UNIQUE,
@@ -13,13 +43,17 @@ async def upgrade(db: BaseDBAsyncClient) -> str:
     "is_active" INT NOT NULL DEFAULT 1,
     "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) /* ユーザー情報を保持する */;
-        ALTER TABLE "chat_tree_detail" ADD "owner_uuid" CHAR(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';"""
+CREATE TABLE IF NOT EXISTS "aerich" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "version" VARCHAR(255) NOT NULL,
+    "app" VARCHAR(100) NOT NULL,
+    "content" JSON NOT NULL
+);"""
 
 
 async def downgrade(db: BaseDBAsyncClient) -> str:
     return """
-        ALTER TABLE "chat_tree_detail" DROP COLUMN "owner_uuid";
-        DROP TABLE IF EXISTS "users";"""
+        """
 
 
 MODELS_STATE = (
