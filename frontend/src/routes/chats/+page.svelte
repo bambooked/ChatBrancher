@@ -4,6 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import type { ChatResponse } from '$lib/types/api';
+	import { ensureAuthorizedResponse } from '$lib/utils/auth';
 
 	let chats = $state<ChatResponse[]>([]);
 	let error = $state('');
@@ -45,6 +46,8 @@
 					Authorization: `Bearer ${token}`
 				}
 			});
+
+			await ensureAuthorizedResponse(response);
 
 			if (response.ok) {
 				const newChat: ChatResponse = await response.json();

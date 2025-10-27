@@ -6,6 +6,7 @@
 	import ConversationPanel from '$lib/components/ConversationPanel.svelte';
 	import { ApiClient } from '$lib/api/client';
 	import { buildTreeFromMessages } from '$lib/utils/tree';
+	import { ensureAuthorizedResponse } from '$lib/utils/auth';
 	import type {
 		ChatResponse,
 		ChatTreeResponse,
@@ -214,6 +215,8 @@
 					Authorization: `Bearer ${token}`
 				}
 			});
+
+			await ensureAuthorizedResponse(response);
 
 			if (!response.ok) {
 				throw new Error('Failed to create chat');
