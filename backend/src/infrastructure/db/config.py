@@ -14,6 +14,11 @@ if not DATABASE_URL:
         "Please set it in your .env file or environment."
     )
 
+# Tortoise ORMはpostgresql://スキームを認識しないため、postgres://に変換
+# Renderなどのサービスはpostgresql://形式を提供することが多い
+if DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgres://", 1)
+
 TORTOISE_ORM = {
     "connections": {
         "default": DATABASE_URL
