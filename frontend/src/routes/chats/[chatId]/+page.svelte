@@ -1,16 +1,11 @@
 <script lang="ts">
-// <<<<<<< temp/for_integrate_test
-// =======
-	import { onMount } from 'svelte';
 	import { apiClient } from '$lib/api';
 	import { goto } from '$app/navigation';
-// >>>>>>> feature/prepare-deploy
 	import { browser } from '$app/environment';
-	import { goto } from '$app/navigation';
 	import ChatTree from '$lib/components/ChatTree.svelte';
 	import ChatListPanel from '$lib/components/ChatListPanel.svelte';
 	import ConversationPanel from '$lib/components/ConversationPanel.svelte';
-	import { ApiClient } from '$lib/api/client';
+	import { API_BASE_URL } from '$lib/config';
 	import { buildTreeFromMessages } from '$lib/utils/tree';
 	import { ensureAuthorizedResponse } from '$lib/utils/auth';
 	import type {
@@ -26,8 +21,7 @@
 		};
 	}
 
-	const apiBase = 'http://localhost:8000';
-	const apiClient = new ApiClient(apiBase);
+	const apiBaseUrl = API_BASE_URL || 'http://localhost:8000';
 
 	let { data }: Props = $props();
 
@@ -40,7 +34,6 @@
 	let loading = $state(true);
 	let error = $state('');
 	let sendingMessage = $state(false);
-// <<<<<<< temp/for_integrate_test
 	let leftPanelVisible = $state(true);
 	let rightPanelVisible = $state(true);
 	let leftPanelWidth = $state(280);
@@ -72,13 +65,6 @@
 			chatsLoaded = false;
 		}
 	}
-// =======
-// 	let messageContent = $state('');
-
-// 	onMount(async () => {
-// 		await loadChatTree();
-// 	});
-// >>>>>>> feature/prepare-deploy
 
 	async function loadChatTree(chatId: string) {
 		const requestId = ++activeChatRequestId;
@@ -223,7 +209,7 @@
 		}
 
 		try {
-			const response = await fetch(`${apiBase}/api/v1/chats`, {
+			const response = await fetch(`${apiBaseUrl}/api/v1/chats`, {
 				method: 'POST',
 				headers: {
 					Authorization: `Bearer ${token}`
