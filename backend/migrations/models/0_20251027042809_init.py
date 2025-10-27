@@ -6,48 +6,53 @@ RUN_IN_TRANSACTION = True
 async def upgrade(db: BaseDBAsyncClient) -> str:
     return """
         CREATE TABLE IF NOT EXISTS "chat_tree_detail" (
-    "uuid" CHAR(36) NOT NULL PRIMARY KEY,
-    "owner_uuid" CHAR(36) NOT NULL,
-    "created" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-) /* チャットの詳細を保持する */;
+    "uuid" UUID NOT NULL PRIMARY KEY,
+    "owner_uuid" UUID NOT NULL,
+    "created" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+COMMENT ON TABLE "chat_tree_detail" IS 'チャットの詳細を保持する';
 CREATE TABLE IF NOT EXISTS "messages" (
-    "uuid" CHAR(36) NOT NULL PRIMARY KEY,
-    "role" VARCHAR(9) NOT NULL /* USER: user\nASSISTANT: assistant\nSYSTEM: system */,
+    "uuid" UUID NOT NULL PRIMARY KEY,
+    "role" VARCHAR(9) NOT NULL,
     "content" TEXT NOT NULL,
-    "user_context_id" CHAR(36),
-    "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "chat_tree_id" CHAR(36) NOT NULL REFERENCES "chat_tree_detail" ("uuid") ON DELETE CASCADE,
-    "parent_id" CHAR(36) REFERENCES "messages" ("uuid") ON DELETE SET NULL
-) /* メッセージのTortoiseモデル（シンプル版：メモリ上で木構造操作） */;
+    "user_context_id" UUID,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "chat_tree_id" UUID NOT NULL REFERENCES "chat_tree_detail" ("uuid") ON DELETE CASCADE,
+    "parent_id" UUID REFERENCES "messages" ("uuid") ON DELETE SET NULL
+);
+COMMENT ON COLUMN "messages"."role" IS 'USER: user\nASSISTANT: assistant\nSYSTEM: system';
+COMMENT ON TABLE "messages" IS 'メッセージのTortoiseモデル（シンプル版：メモリ上で木構造操作）';
 CREATE TABLE IF NOT EXISTS "assistant_message_details" (
     "provider" VARCHAR(100),
     "model_name" VARCHAR(100),
     "prompt_tokens" INT NOT NULL DEFAULT 0,
     "completion_tokens" INT NOT NULL DEFAULT 0,
     "total_tokens" INT NOT NULL DEFAULT 0,
-    "temperature" REAL,
+    "temperature" DOUBLE PRECISION,
     "max_tokens" INT,
     "finish_reason" VARCHAR(50),
     "gen_id" VARCHAR(255),
     "object_" VARCHAR(50),
     "created_timestamp" VARCHAR(50),
-    "message_id" CHAR(36) NOT NULL PRIMARY KEY REFERENCES "messages" ("uuid") ON DELETE CASCADE
-) /* アシスタントメッセージの詳細情報（LLM関連データ） */;
+    "message_id" UUID NOT NULL PRIMARY KEY REFERENCES "messages" ("uuid") ON DELETE CASCADE
+);
+COMMENT ON TABLE "assistant_message_details" IS 'アシスタントメッセージの詳細情報（LLM関連データ）';
 CREATE TABLE IF NOT EXISTS "users" (
-    "uuid" CHAR(36) NOT NULL PRIMARY KEY,
+    "uuid" UUID NOT NULL PRIMARY KEY,
     "username" VARCHAR(50) NOT NULL UNIQUE,
     "email" VARCHAR(255) NOT NULL UNIQUE,
     "password_hash" VARCHAR(255) NOT NULL,
-    "is_active" INT NOT NULL DEFAULT 1,
-    "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-) /* ユーザー情報を保持する */;
+    "is_active" BOOL NOT NULL DEFAULT True,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+COMMENT ON TABLE "users" IS 'ユーザー情報を保持する';
 CREATE TABLE IF NOT EXISTS "aerich" (
-    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "id" SERIAL NOT NULL PRIMARY KEY,
     "version" VARCHAR(255) NOT NULL,
     "app" VARCHAR(100) NOT NULL,
-    "content" JSON NOT NULL
+    "content" JSONB NOT NULL
 );"""
 
 

@@ -1,0 +1,47 @@
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+Dockerfile.dev
+.dockerignore
+
+# IDE
+.vscode
+.idea
+.claude
+
+# Environment
+.env
+.env.local
+.env.example
+
+# Documentation
+README.md
+*.md
+
+# OS
+.DS_Store
+
+# Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ruff_cache/
+
+# Virtual environment
+.venv/
+venv/
+
+# Database
+*.sqlite3
+*.db
+
+# Logs
+*.log
+
+# Legacy
+legacy/

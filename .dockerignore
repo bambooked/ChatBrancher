@@ -1,0 +1,53 @@
+# Git
+.git
+.gitignore
+
+# Docker
+docker-compose.yml
+Dockerfile
+Dockerfile.dev
+.dockerignore
+
+# IDE
+.vscode
+.idea
+.claude
+.serena
+
+# Documentation
+docs/
+README.md
+*.md
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ruff_cache/
+
+# Dependencies
+node_modules/
+.venv/
+venv/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Database
+*.sqlite3
+*.db
+
+# Logs
+*.log

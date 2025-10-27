@@ -1,4 +1,10 @@
 <script lang="ts">
+// <<<<<<< temp/for_integrate_test
+// =======
+	import { onMount } from 'svelte';
+	import { apiClient } from '$lib/api';
+	import { goto } from '$app/navigation';
+// >>>>>>> feature/prepare-deploy
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import ChatTree from '$lib/components/ChatTree.svelte';
@@ -34,6 +40,7 @@
 	let loading = $state(true);
 	let error = $state('');
 	let sendingMessage = $state(false);
+// <<<<<<< temp/for_integrate_test
 	let leftPanelVisible = $state(true);
 	let rightPanelVisible = $state(true);
 	let leftPanelWidth = $state(280);
@@ -65,6 +72,13 @@
 			chatsLoaded = false;
 		}
 	}
+// =======
+// 	let messageContent = $state('');
+
+// 	onMount(async () => {
+// 		await loadChatTree();
+// 	});
+// >>>>>>> feature/prepare-deploy
 
 	async function loadChatTree(chatId: string) {
 		const requestId = ++activeChatRequestId;
