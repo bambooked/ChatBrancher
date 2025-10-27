@@ -1,0 +1,39 @@
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+Dockerfile.dev
+.dockerignore
+
+# IDE
+.vscode
+.idea
+
+# Documentation
+README.md
+*.md
+
+# OS
+.DS_Store
+
+# Dependencies
+node_modules/
+
+# Build output
+.svelte-kit/
+build/
+dist/
+
+# Environment
+.env
+.env.local
+.env.example
+
+# Testing
+coverage/
+
+# Logs
+*.log
+npm-debug.log*

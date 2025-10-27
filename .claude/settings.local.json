@@ -63,7 +63,15 @@
       "Bash(done)",
       "Bash(npx playwright install chromium)",
       "Bash(npm test)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(docker-compose logs:*)",
+      "Bash(docker build:*)",
+      "Bash(docker-compose down:*)",
+      "Bash(docker logs:*)",
+      "Bash(docker stop:*)",
+      "Bash(docker rm:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(docker-compose ps:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

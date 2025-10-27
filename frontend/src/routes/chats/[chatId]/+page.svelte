@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { ApiClient } from '$lib/api/client';
+	import { apiClient } from '$lib/api';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import { buildTreeFromMessages } from '$lib/utils/tree';
@@ -22,8 +22,6 @@
 	let loading = $state(true);
 	let sendingMessage = $state(false);
 	let messageContent = $state('');
-
-	const apiClient = new ApiClient('http://localhost:8000');
 
 	onMount(async () => {
 		await loadChatTree();

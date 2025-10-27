@@ -3,15 +3,20 @@ TortoiseORM設定
 
 このモジュールはTortoiseORMとAerichマイグレーションツールの設定を提供します。
 """
-from pathlib import Path
+import os
 
-# backend/db.sqlite3 への絶対パスを生成
-# config.py は backend/src/infrastructure/db/ にあるので、3階層上がbackend/
-DB_PATH = Path(__file__).parent.parent.parent.parent / "db.sqlite3"
+# 環境変数からDATABASE_URLを取得（必須）
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise ValueError(
+        "DATABASE_URL environment variable is required. "
+        "Please set it in your .env file or environment."
+    )
 
 TORTOISE_ORM = {
     "connections": {
-        "default": f"sqlite://{DB_PATH}"
+        "default": DATABASE_URL
     },
     "apps": {
         "models": {

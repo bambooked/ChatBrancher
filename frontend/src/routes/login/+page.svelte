@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ApiClient } from '$lib/api/client';
+	import { apiClient } from '$lib/api';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 
@@ -7,8 +7,6 @@
 	let password = $state('');
 	let error = $state('');
 	let loading = $state(false);
-
-	const apiClient = new ApiClient('http://localhost:8000');
 
 	async function handleSubmit(event: Event) {
 		event.preventDefault();

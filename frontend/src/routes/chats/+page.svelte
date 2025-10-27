@@ -1,15 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { ApiClient } from '$lib/api/client';
+	import { apiClient } from '$lib/api';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import type { ChatResponse } from '$lib/types/api';
+	import { API_BASE_URL } from '$lib/config';
 
 	let chats = $state<ChatResponse[]>([]);
 	let error = $state('');
 	let loading = $state(true);
-
-	const apiClient = new ApiClient('http://localhost:8000');
 
 	onMount(async () => {
 		if (!browser) return;
@@ -39,7 +38,7 @@
 		}
 
 		try {
-			const response = await fetch('http://localhost:8000/api/v1/chats', {
+			const response = await fetch(`${API_BASE_URL}/api/v1/chats`, {
 				method: 'POST',
 				headers: {
 					Authorization: `Bearer ${token}`
