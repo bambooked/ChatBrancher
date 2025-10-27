@@ -1,3 +1,4 @@
+import { ensureAuthorizedResponse } from '$lib/utils/auth';
 import type {
 	LoginRequest,
 	TokenResponse,
@@ -19,6 +20,8 @@ export class ApiClient {
 			body: JSON.stringify(request)
 		});
 
+		await ensureAuthorizedResponse(response);
+
 		if (!response.ok) {
 			throw new Error(`Login failed: ${response.status}`);
 		}
@@ -34,6 +37,8 @@ export class ApiClient {
 			}
 		});
 
+		await ensureAuthorizedResponse(response);
+
 		if (!response.ok) {
 			throw new Error(`Failed to fetch chats: ${response.status}`);
 		}
@@ -48,6 +53,8 @@ export class ApiClient {
 				Authorization: `Bearer ${token}`
 			}
 		});
+
+		await ensureAuthorizedResponse(response);
 
 		if (!response.ok) {
 			throw new Error(`Failed to fetch chat tree: ${response.status}`);
@@ -69,6 +76,8 @@ export class ApiClient {
 			},
 			body: JSON.stringify(request)
 		});
+
+		await ensureAuthorizedResponse(response);
 
 		if (!response.ok) {
 			throw new Error(`Failed to send message: ${response.status}`);

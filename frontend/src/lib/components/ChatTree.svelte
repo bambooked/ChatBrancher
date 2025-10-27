@@ -4,9 +4,10 @@
 	interface Props {
 		tree: TreeNode | null;
 		onNodeSelect?: (nodeUuid: string) => void;
+		activeNodeUuid?: string | null;
 	}
 
-	let { tree, onNodeSelect }: Props = $props();
+	let { tree, onNodeSelect, activeNodeUuid }: Props = $props();
 
 	let selectedNode = $state<string | null>(null);
 	let currentPath = $state<string[]>([]);
@@ -128,6 +129,30 @@
 	let connections = $derived(generateConnections(renderNodes, currentPath));
 	let treeWidth = $derived(Math.max(...renderNodes.map((n) => n.x), 0) + nodeWidth + 100);
 	let treeHeight = $derived(Math.max(...renderNodes.map((n) => n.y), 0) + nodeHeight + 100);
+
+	$effect(() => {
+		if (activeNodeUuid === undefined) {
+			return;
+		}
+
+		if (!tree) {
+			selectedNode = null;
+			currentPath = [];
+			return;
+		}
+
+		if (activeNodeUuid) {
+			const path = findPath(tree, activeNodeUuid);
+			if (path.length > 0) {
+				selectedNode = activeNodeUuid;
+				currentPath = path;
+				return;
+			}
+		}
+
+		selectedNode = null;
+		currentPath = [];
+	});
 </script>
 
 {#if tree}
@@ -306,6 +331,7 @@
 	}
 	.line-clamp-3 {
 		display: -webkit-box;
+		line-clamp: 3;
 		-webkit-line-clamp: 3;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
