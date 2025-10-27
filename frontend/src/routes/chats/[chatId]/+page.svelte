@@ -7,7 +7,7 @@
 	import ConversationPanel from '$lib/components/ConversationPanel.svelte';
 	import { API_BASE_URL } from '$lib/config';
 	import { buildTreeFromMessages } from '$lib/utils/tree';
-	import { ensureAuthorizedResponse } from '$lib/utils/auth';
+	import { ensureAuthorizedResponse, checkTokenValidityAndRedirect } from '$lib/utils/auth';
 	import type {
 		ChatResponse,
 		ChatTreeResponse,
@@ -51,6 +51,13 @@
 	const MAX_RIGHT_WIDTH = 520;
 
 	async function loadChats() {
+		// トークンの有効性を事前にチェック
+		const isValid = await checkTokenValidityAndRedirect();
+		if (!isValid) {
+			loading = false;
+			return;
+		}
+
 		const token = localStorage.getItem('access_token');
 		if (!token) {
 			await goto('/login');
@@ -75,6 +82,13 @@
 		messageMap = new Map();
 		chatTree = null;
 		tree = null;
+
+		// トークンの有効性を事前にチェック
+		const isValid = await checkTokenValidityAndRedirect();
+		if (!isValid) {
+			loading = false;
+			return;
+		}
 
 		const token = localStorage.getItem('access_token');
 		if (!token) {
@@ -170,6 +184,11 @@
 
 	async function handleSendMessage(content: string) {
 		if (!content.trim() || sendingMessage) return;
+
+		// トークンの有効性を事前にチェック
+		const isValid = await checkTokenValidityAndRedirect();
+		if (!isValid) return;
+
 		const token = localStorage.getItem('access_token');
 		if (!token) {
 			await goto('/login');
@@ -202,6 +221,10 @@
 	}
 
 	async function createNewChat() {
+		// トークンの有効性を事前にチェック
+		const isValid = await checkTokenValidityAndRedirect();
+		if (!isValid) return;
+
 		const token = localStorage.getItem('access_token');
 		if (!token) {
 			await goto('/login');

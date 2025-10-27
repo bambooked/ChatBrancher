@@ -4,7 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import type { ChatResponse } from '$lib/types/api';
-	import { ensureAuthorizedResponse } from '$lib/utils/auth';
+	import { ensureAuthorizedResponse, checkTokenValidityAndRedirect } from '$lib/utils/auth';
 	import { API_BASE_URL } from '$lib/config';
 
 	let chats = $state<ChatResponse[]>([]);
@@ -13,6 +13,10 @@
 
 	onMount(async () => {
 		if (!browser) return;
+
+		// トークンの有効性を事前にチェック
+		const isValid = await checkTokenValidityAndRedirect();
+		if (!isValid) return;
 
 		const token = localStorage.getItem('access_token');
 		if (!token) {
@@ -31,6 +35,10 @@
 
 	async function createNewChat() {
 		if (!browser) return;
+
+		// トークンの有効性を事前にチェック
+		const isValid = await checkTokenValidityAndRedirect();
+		if (!isValid) return;
 
 		const token = localStorage.getItem('access_token');
 		if (!token) {
