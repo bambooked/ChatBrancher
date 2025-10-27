@@ -16,7 +16,7 @@ RUN npm run build
 # ========================================
 # Stage 2: バックエンド + 静的ファイル配信
 # ========================================
-FROM python:3.13-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 

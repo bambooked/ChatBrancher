@@ -3,7 +3,7 @@ name = "cb-back-v2"
 version = "0.1.0"
 description = "simple branch chat app."
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 dependencies = [
     "aerich>=0.9.2",
     "anytree>=2.13.0",
